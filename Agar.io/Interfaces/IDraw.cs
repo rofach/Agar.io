@@ -10,10 +10,10 @@ namespace Agario.Interfaces
 {
     public interface IDraw
     {
-        public float X { get; set; }
+        /*public float X { get; set; }
         public float Y { get; set; }
 
-        public float Size { get; set; }   
+        public float Size { get; set; }   */
         void Draw(RenderWindow window);
     }
 }

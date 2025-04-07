@@ -14,7 +14,7 @@ namespace Agario
         static List<IDraw> _drawableObjects = new();
         static List<IMove> _movableObjects = new();
         static List<IMove> _cells = new();
-
+        public static bool flag = true;
         static public void Add<T>(T obj) where T : class
         {
             if (obj == null) throw new ArgumentNullException(nameof(obj));
@@ -29,19 +29,19 @@ namespace Agario
             else
                 throw new ArgumentException("Not is a game object");
         }
-        
+
         static public void MoveObj(RenderWindow window)
         {
+
             foreach (IMove obj in _movableObjects)
             {
                 obj.Move(window);
-                
             }
         }
         
         static public Texture texture = new Texture("textures/text1.png");
         static public IEnumerable<IDraw> GetDrawableObjects() => _drawableObjects;
-        static public IEnumerable<IDraw> GetMoveblaObjects() => _movableObjects;
+        static public IEnumerable<IMove> GetMoveblaObjects() => _movableObjects;
         static public IEnumerable<IMove> GetCells() => _cells;
 
     }

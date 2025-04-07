@@ -1,4 +1,4 @@
-﻿using SFML.Graphics;
+﻿using Agario.Cells;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace Agario.Interfaces
 {
-    public interface IMove
+    internal interface ICellsList
     {
-        public void Move(RenderWindow window);
+        public List<Cell> GetCells { get; set; }
     }
 }

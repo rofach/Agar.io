@@ -9,12 +9,11 @@ using System.Threading.Tasks;
 
 namespace Agario.Cells
 {
-    class Food : Cell, IMove
+    class Food : Cell, IMove, IDraw
     {
         static Random rand = new Random();
         static Color[] colors = {Color.Blue, Color.Yellow, Color.Green, Color.Red, new Color(244, 43, 99)};
         Vector2f target;
-        //Texture texture = new Texture("textures/text1.png");
         bool flag;
         public Food(int mass = 30)
         {

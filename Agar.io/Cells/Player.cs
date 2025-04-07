@@ -10,10 +10,11 @@ using SFML.Window;
 
 using Agario.Interfaces;
 using System.Security.Principal;
+using System.Numerics;
 
 namespace Agario.Cells
 {
-    class Player : Cell, IMove
+    class Player : IMove, IDraw, ICellsList
     {
 
         private float speed;
@@ -23,90 +24,42 @@ namespace Agario.Cells
         Texture texture = new Texture("textures/test2.jpg");
         short maxD = 2;
         public short currentD = 0;
-        
-        public Vector2f Position
+        public bool ass;
+        public List<Cell> cells = new List<Cell>();
+        public Player()
         {
-            get
-            {
-                return new Vector2f(position.X + radius, position.Y + radius);
-            }
+
+            cells.Add(new PlayerCell());
         }
-        public Player(bool divided = false)
+        public List<Cell> GetCells
         {
-            x = 0; y = 0;
-            mass = 2000;
-            radius = GetRadius(mass);
-            circle = new CircleShape(radius);
-            circle.FillColor = Color.White;
-            position = new Vector2f(x + radius, y + radius);
-            circle.Position = position;
-            speed = 1.0f;
-            circle.OutlineColor = new Color(100, 0, 0);
-            circle.OutlineThickness = 4;
-            circle.Texture = texture;
-            circle.SetPointCount(100);
-            lastDivideTime = 0;
-        }
-        public override void Draw(RenderWindow window)
-        {
-            window.Draw(circle);
+            get { return cells; }
+            set { cells = value; }
         }
         public void Divide()
         {
-            if (currentD < maxD)
-            {
-                Player player = new Player(true);
-                currentD++;
-                player.currentD = currentD;
-                this.Mass /= 2;
-                player.Mass = this.Mass;        
-                player.X = this.X;
-                player.Y = this.Y;
-                Objects.Add(player);
-                lastDivideTime = Timer.GameTime;
-                
-            }
-        }
-        void Accelerate()
-        {
-            
+
         }
 
         public void Unite()
         {
-            if(Timer.DeltaTime - lastDivideTime > 10)
-            {
-                Player player = new Player(true);
-                player.Mass *= 2;
-                Objects.Add(player);
-            }
+
         }
         public void Move(RenderWindow window)
         {
-            
-            var mousePos = window.MapPixelToCoords(Mouse.GetPosition(window));
-            float dX = mousePos.X - x;
-            float dY = mousePos.Y - y;
-            float distance = (float)Math.Sqrt(Math.Pow(dX, 2) + Math.Pow(dY, 2));
-            float distanceSpeed = 1;
-            if(distance < radius)
+            foreach (var cell in cells)
             {
-                distanceSpeed = distance / radius;
+                if (cell is PlayerCell playerCell)
+                    playerCell.Move(window);
             }
-            if (distance > speed)
+        }
+
+        public void Draw(RenderWindow window)
+        {
+            foreach (var cell in cells)
             {
-                if (Math.Abs(x) > Game.sizeX && Math.Abs(mousePos.X) > Math.Abs(x))
-                    dX = 0;
-                if (Math.Abs(y) > Game.sizeY && Math.Abs(mousePos.Y) > Math.Abs(y))
-                    dY = 0;
-                direction = new Vector2f(dX / distance, dY / distance);
-
-                circle.Position += (direction * ((speed / (float)Math.Pow(Mass, 1/10d)) * Timer.DeltaTime * 100)) * distanceSpeed;
-                position = circle.Position;
-                x = circle.Position.X + radius;
-                y = circle.Position.Y + radius;
+                window.Draw(cell.Circle);
             }
-
         }
     }
 }

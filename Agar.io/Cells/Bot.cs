@@ -20,7 +20,7 @@ namespace Agario.Cells
         float speed = 1;
         public Bot()
         {
-            this.mass = 1000;
+            mass = 1000;
             radius = GetRadius(mass);
             circle = new CircleShape(radius);
             circle.FillColor = new Color((byte)rand.Next(0, 255), (byte)rand.Next(0, 255), (byte)rand.Next(0, 255));

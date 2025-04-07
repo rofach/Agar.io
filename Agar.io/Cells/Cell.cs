@@ -23,6 +23,7 @@ namespace Agario.Cells
         public float Size { 
             set { radius = value; }
             get { return radius; } }
+        public CircleShape Circle { get { return circle; } set { circle = value; } }
         public float Mass { get { return mass; } set { mass = value; radius = GetRadius(mass);  circle.Radius = radius; } }
 
         public abstract void Draw(RenderWindow window);

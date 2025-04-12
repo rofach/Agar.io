@@ -13,7 +13,7 @@ namespace Agario.Cells
         {
             this.X = x;
             this.Y = y;
-            this.Size = size;
+            this.Radius = size;
         }
         public override void Draw(RenderWindow window)
         {

@@ -15,7 +15,7 @@ namespace Agario
         }
         public static bool CanEat(Cell thisCell, Cell otherCell)
         {
-            return GetDistance(thisCell, otherCell) < thisCell.Size;
+            return GetDistance(thisCell, otherCell) < thisCell.Radius;
         }
     }
 }

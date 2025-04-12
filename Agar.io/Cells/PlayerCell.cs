@@ -31,7 +31,7 @@ namespace Agario.Cells
         }
         public bool IsMergeable
         {
-            get { return Timer.GameTime - DivisionTime >= 10.0f; }
+            get { return Timer.GameTime - DivisionTime >= 30.0f; }
            
         }
         public Vector2f Position
@@ -112,9 +112,9 @@ namespace Agario.Cells
                     _acceleration = false;
                 }
             }
-            if (distance < this.Size)
+            if (distance < this.Radius)
             {
-                distanceSpeed = distance / this.Size;
+                distanceSpeed = distance / this.Radius;
             }
            
             if (distance > _speed)
@@ -127,8 +127,8 @@ namespace Agario.Cells
 
                 this.Circle.Position += (_direction * ((_speed) * Timer.DeltaTime * 100)) * distanceSpeed * accelerateSpeed;
                 _position = this.Circle.Position;
-                this.X = this.Circle.Position.X + this.Size;
-                this.Y = this.Circle.Position.Y + this.Size;
+                this.X = this.Circle.Position.X + this.Radius;
+                this.Y = this.Circle.Position.Y + this.Radius;
             }
         }
     }

@@ -96,7 +96,7 @@ namespace Agario
                             cellsToDraw.Add(cell);
                     }
                 }
-                cellsToDraw.Sort((a, b) => a.Size.CompareTo(b.Size));
+                cellsToDraw.Sort((a, b) => a.Radius.CompareTo(b.Radius));
                 foreach(var cell in cellsToDraw)
                 {
                     cell.Draw(window);
@@ -105,31 +105,32 @@ namespace Agario
 
             Objects.MoveObj(window);
         }
-        private void EatFood(Cell obj, Food food, RenderWindow window)
+        private void EatFood(Cell cell, Food food, RenderWindow window)
         {
-            float dist = GetDistance(obj, food);
-            //if (dist < obj.Size + food.Size * 2)
-            //{
-            //    food.SetTarget(new Vector2f(obj.X, obj.Y));
-            //    food.SetFlag(true);
-            //}
-            //else
-            //{
-            //    food.SetFlag(false);
-            //}
-            if (dist < obj.Size)
+            float dist = GetDistance(cell, food);
+            if (dist < cell.Radius + food.Radius * 2 && food.IsEaten == false)
             {
-                float prevRadius = obj.Size;
-                obj.Mass += food.Mass;
-                if (obj is PlayerCell)
+                food.Target = cell;
+                food.IsEaten = true;
+            }
+            /*else
+            {
+                food.IsEaten = false;
+                return;
+            }*/
+            if (dist < cell.Radius)
+            {
+                float prevRadius = cell.Radius;
+                cell.Mass += food.Mass;
+                if (cell is PlayerCell)
                 {
-                    float radiusDifference = obj.Size - prevRadius;
+                    float radiusDifference = cell.Radius - prevRadius;
                     float aspectRatio = window.Size.X / (float)window.Size.Y;
                     _camera.Size += new Vector2f(radiusDifference * aspectRatio, radiusDifference);
                 }
 
                 food.ChangePos(sizeX, sizeY);
-                food.SetMoveToTarget(false);
+                food.IsEaten = false;
             }
         }
         private float GetDistance(Cell obj1, Cell obj2)
@@ -138,12 +139,12 @@ namespace Agario
         }
         private bool CanEat(Cell thisCell, Cell otherCell)
         {
-            return GetDistance(thisCell, otherCell) < thisCell.Size;
+            return GetDistance(thisCell, otherCell) < thisCell.Radius;
         }
         private bool IsInViewZone(Cell gameObj, View camera)
         {
-            return Math.Abs(camera.Center.X - gameObj.X) < camera.Size.X / 2 + gameObj.Size * 4 &&
-                   Math.Abs(camera.Center.Y - gameObj.Y) < camera.Size.Y / 2 + gameObj.Size * 4;
+            return Math.Abs(camera.Center.X - gameObj.X) < camera.Size.X / 2 + gameObj.Radius * 4 &&
+                   Math.Abs(camera.Center.Y - gameObj.Y) < camera.Size.Y / 2 + gameObj.Radius * 4;
         }
         private static void OnClose(object sender, EventArgs e)
         {

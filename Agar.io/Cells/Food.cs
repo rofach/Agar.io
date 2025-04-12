@@ -13,8 +13,13 @@ namespace Agario.Cells
     {
         static private Random _rand = new Random();
         //static private Color[] color_s = {Color.Blue, Color.Yellow, Color.Green, Color.Red, new Color(244, 43, 99)};
-        private Vector2f _target;
-        private bool flag;
+        private Cell _target;
+        public Cell Target
+        {
+            get { return _target; }
+            set { _target = value; }
+        }
+        public bool IsEaten { get; set; } = false;
         public Food(int mass = 30)
         {
             this.mass = mass;
@@ -23,7 +28,7 @@ namespace Agario.Cells
             circle.FillColor = new Color((byte)_rand.Next(0, 255), (byte)_rand.Next(0, 255), (byte)_rand.Next(0, 255));
             circle.SetPointCount(20);
             ChangePos(Game.sizeX, Game.sizeY);
-            flag = false;
+            IsEaten = false;
             circle.Texture = Objects.texture;
         }
         public override void Draw(RenderWindow window)
@@ -37,17 +42,9 @@ namespace Agario.Cells
             Vector2f position = new Vector2f(x - radius, y - radius);
             circle.Position = position;
         }
-        public void SetTarget(Vector2f target)
-        {
-            this._target = target;
-        }
-        public void SetMoveToTarget(bool fl)
-        {
-            flag = fl;
-        }
         public void Move(RenderWindow window)
         {
-            if (flag)
+            if (IsEaten)
             {
                 float dX = _target.X - x;
                 float dY = _target.Y - y;
@@ -56,6 +53,7 @@ namespace Agario.Cells
                 circle.Position += (direction * (2 * Timer.DeltaTime * 100));
                 x = circle.Position.X + radius;
                 y = circle.Position.Y + radius;
+                if (distance > Radius * 2) IsEaten = false;
             }
             else
             {

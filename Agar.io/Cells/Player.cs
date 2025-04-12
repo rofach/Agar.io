@@ -43,7 +43,7 @@ namespace Agario.Cells
                 if (_currentDivideCount < _maxDivideCount && cell.Mass >= 2 * _minMass)
                 {
                     cell.Mass /= 2;
-                    PlayerCell newCell = new PlayerCell(cell.X - cell.Size * 2, cell.Y - cell.Size * 2, cell.Mass);
+                    PlayerCell newCell = new PlayerCell(cell.X - cell.Radius * 2, cell.Y - cell.Radius * 2, cell.Mass);
                     newCell.Acceleration = true;
                     newCell.DivisionTime = Timer.GameTime;
                     newCell.AccelerationDirection = cell.Direction * 10000000;
@@ -100,7 +100,7 @@ namespace Agario.Cells
                     Vector2f pos2 = pc2.Position;
                     Vector2f delta = pos2 - pos1;
                     float actualDistance = (float)Math.Sqrt(delta.X * delta.X + delta.Y * delta.Y);
-                    float minDistance = cells[i].Size + cells[j].Size + 8;
+                    float minDistance = cells[i].Radius + cells[j].Radius + 8;
 
                     if (actualDistance == 0)
                         continue;

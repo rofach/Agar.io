@@ -11,7 +11,7 @@ namespace Agario.Cells
     abstract public class Cell : IDraw
     {
 
-        public float x, y, mass, radius;
+        protected float x, y, mass, radius;
         protected CircleShape circle;
         
         public float X { 
@@ -20,7 +20,7 @@ namespace Agario.Cells
         public float Y { 
             set { y = value; }
             get { return y; } }
-        public float Size { 
+        public float Radius { 
             set { radius = value; }
             get { return radius; } }
         public CircleShape Circle { get { return circle; } set { circle = value; } }

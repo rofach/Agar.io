@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 
 namespace Agario.Interfaces
 {
-    internal interface ICellsList
+    internal interface IMulticellular
+
     {
         public List<Cell> GetCells { get; set; }
     }

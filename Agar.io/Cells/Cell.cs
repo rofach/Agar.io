@@ -8,10 +8,10 @@ using System.Threading.Tasks;
 
 namespace Agario.Cells
 {
-    abstract class Cell : IDraw
+    abstract public class Cell : IDraw
     {
 
-        protected float x, y, mass, radius;
+        public float x, y, mass, radius;
         protected CircleShape circle;
         
         public float X { 

@@ -11,7 +11,7 @@ namespace Agario
     {
         static void Main(string[] args)
         {
-            Game game = new Game(2000);
+            Game game = new Game(5000);
             game.Run();
 
         }

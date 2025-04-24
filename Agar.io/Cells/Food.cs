@@ -1,11 +1,6 @@
 ﻿using Agario.Interfaces;
 using SFML.Graphics;
 using SFML.System;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Agario.Cells
 {
@@ -26,7 +21,7 @@ namespace Agario.Cells
             Y = _rand.Next(-Game.sizeY, Game.sizeY);
             Mass = mass;
             this.Mass = mass;
-            Radius = GetRadius(mass);
+            Radius = CalculateRadius(mass);
 
             Circle.FillColor = new Color((byte)_rand.Next(0, 255), (byte)_rand.Next(0, 255), (byte)_rand.Next(0, 255));
             Circle.SetPointCount(20);
@@ -50,7 +45,7 @@ namespace Agario.Cells
             {
                 float dX = _target.X - X;
                 float dY = _target.Y - Y;
-                float distance = (float)Math.Sqrt(Math.Pow(dX, 2) + Math.Pow(dY, 2));
+                float distance = MathF.Sqrt(MathF.Pow(dX, 2) + MathF.Pow(dY, 2));
                 var direction = new Vector2f(dX / distance, dY / distance);
                 Circle.Position += (direction * (2 * Timer.DeltaTime * 100)) * 2;
                 X = Circle.Position.X + Radius;

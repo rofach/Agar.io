@@ -1,12 +1,6 @@
 ﻿using Agario.Interfaces;
 using SFML.Graphics;
 using SFML.System;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Agario.Cells
 {
@@ -25,7 +19,7 @@ namespace Agario.Cells
             this.X = x;
             this.Y = y;
             this.Mass = mass;
-            Radius = GetRadius(mass);
+            Radius = CalculateRadius(mass);
             Circle.FillColor = new Color((byte)_rand.Next(0, 255), (byte)_rand.Next(0, 255), (byte)_rand.Next(0, 255));
             Circle.SetPointCount(100);
             ChangePos(Game.sizeX, Game.sizeY);

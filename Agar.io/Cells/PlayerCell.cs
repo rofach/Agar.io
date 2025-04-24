@@ -9,6 +9,8 @@ namespace Agario.Cells
     {
         private Vector2f _direction;
         private Vector2f _accelerationDirection;
+        private Vector2f _startAccelerationPoint;
+        private float _accelerationDistance;
         private float _speed;
         private bool _acceleration = false;
         private int _accelerationTime = 1;
@@ -34,23 +36,35 @@ namespace Agario.Cells
             get { return _acceleration; }
             set { _acceleration = value; }
         }
+        public float AccelerationDistance
+        {
+            get { return _accelerationDistance; }
+            set { _accelerationDistance = value; }
+        }
+        public Vector2f StartAccelerationPoint
+        {
+            get { return _startAccelerationPoint; }
+            set { _startAccelerationPoint = value; }
+        }
 
         public int ID { get; set; }
 
         public PlayerCell(float x = 0, float y = 0, float mass = 200, int id = 1)
         {
-            X = x; Y = y;
-            Circle = new CircleShape(Radius);  
+            X = x; Y = y;           
+            Circle = new CircleShape();
             Mass = mass;
-            Circle.FillColor = Color.White;
             CirclePosition = new Vector2f(x + Radius, y + Radius);
+
+            Circle.FillColor = Color.White;
+            
             Circle.Position = CirclePosition;
             _speed = 2.0f;
             Circle.OutlineColor = new Color(100, 0, 0);
             Circle.OutlineThickness = 4;
             Circle.Texture = _texture;
             Circle.SetPointCount(100);
-            Radius = GetRadius(Mass) + Circle.OutlineThickness;
+            Radius = CalculateRadius(Mass) + Circle.OutlineThickness;
             DivisionTime = 0;
         }
         public Cell Split(float newMass, float x, float y, float currentTime)
@@ -59,7 +73,9 @@ namespace Agario.Cells
             {
                 Acceleration = true,
                 DivisionTime = currentTime,
-                AccelerationDirection = Direction * 10000000
+                AccelerationDirection = Direction * 10000,
+                AccelerationDistance = Radius * 20,
+                StartAccelerationPoint = new Vector2f(X, Y)
             };
             return child;
         }
@@ -71,6 +87,10 @@ namespace Agario.Cells
         {
             _speed = 200.0f / (100.0f + (float)Math.Sqrt(Mass));
         }
+        private bool ReachedDistance()
+        {
+            return _accelerationDistance <= Logic.GetDistanceBetweenPoints(new Vector2f(X, Y), _startAccelerationPoint);
+        }
         public void Move(RenderWindow window)
         {
             UpdateSpeed();
@@ -79,12 +99,12 @@ namespace Agario.Cells
             {
                 mousePos = _accelerationDirection;
             }
-            float dX = mousePos.X - this.X;
-            float dY = mousePos.Y - this.Y;
+            float dX = mousePos.X - X;
+            float dY = mousePos.Y - Y;
             float distance = (float)Math.Sqrt(Math.Pow(dX, 2) + Math.Pow(dY, 2));
             float distanceSpeed = 1;
             
-            if (_acceleration && Timer.GameTime - DivisionTime > _accelerationTime)
+            /*if (_acceleration && Timer.GameTime - DivisionTime > _accelerationTime)
             {
                 _acceleration = false;
             }
@@ -113,8 +133,21 @@ namespace Agario.Cells
             if (distance < Radius)
             {
                 distanceSpeed = distance / Radius;
+            }*/
+            _acceleration = _acceleration && !ReachedDistance();
+            float accelerateSpeed = 1.0f;
+            if (_acceleration)
+            {
+                float traveledPath = Logic.GetDistanceBetweenPoints(new Vector2f(X, Y), _startAccelerationPoint);
+                if(traveledPath/_accelerationDistance < 0.5f)
+                {
+                    accelerateSpeed = 4.0f + (traveledPath / _accelerationDistance) * (4.0f - 1.0f);
+                }
+                else
+                {
+                    accelerateSpeed = 4.0f - ((traveledPath - _accelerationDistance / 2) / (_accelerationDistance / 2)) * (4.0f - 1.0f);
+                }
             }
-           
             if (distance > _speed)
             {
                 _direction = new Vector2f(dX / distance, dY / distance);

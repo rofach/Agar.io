@@ -1,11 +1,6 @@
 ﻿using Agario.Interfaces;
 using SFML.Graphics;
 using SFML.System;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Agario.Cells
 {
@@ -35,12 +30,12 @@ namespace Agario.Cells
         public float Mass { get { return _mass; } 
             set { 
                 _mass = value; 
-                _radius = GetRadius(_mass);  
+                _radius = CalculateRadius(_mass);  
                 _circle.Radius = _radius; } }
 
         public abstract void Draw(RenderWindow window);
 
-        protected float GetRadius(float mass)
+        protected float CalculateRadius(float mass)
         {
             return MathF.Sqrt(mass);
         }

@@ -3,19 +3,8 @@ using Agario.Interfaces;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Runtime.ExceptionServices;
-using System.Text;
-using System.Threading.Tasks;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.Index.Strtree;
-using NetTopologySuite.Index;
-
-
 
 namespace Agario
 {
@@ -120,10 +109,9 @@ namespace Agario
                     
                     foreach (var virus in nearbyViruses)
                     {
-                        if(CanEat(cell, virus))
+                        if(Logic.CanEat(cell, virus))
                         {
                             cell.Mass += virus.Mass;
-                            //plCell.VirusSplit(cl);
                             cells.Add(cell);
                             Objects.Remove(virus);
                         }

@@ -1,17 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SFML.Graphics;
+﻿using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
-
 using Agario.Interfaces;
-using System.Security.Principal;
-using System.Numerics;
-using NetTopologySuite.Operation.Distance3D;
 
 namespace Agario.Cells
 {
@@ -48,11 +38,13 @@ namespace Agario.Cells
                 float angle = i * angleStep;
                 
                 Vector2f dir = new Vector2f(cell.X + 1000 * MathF.Cos(angle), cell.Y + 1000 * MathF.Sin(angle));
-                var newCell = new PlayerCell(cell.X, cell.Y, fragmentMass, id)
+                var newCell = new PlayerCell(cell.X + 10 * MathF.Cos(angle), cell.Y + 10 * MathF.Sin(angle), fragmentMass, id)
                 {
                     Acceleration = true,
                     DivisionTime = Timer.GameTime,
-                    AccelerationDirection = dir * 2
+                    AccelerationDirection = dir,
+                    AccelerationDistance = cell.Radius*10,
+                    StartAccelerationPoint = center,
                 };
                 _cells.Add(newCell);
             }

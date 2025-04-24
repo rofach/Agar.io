@@ -1,4 +1,5 @@
 ﻿using SFML.Graphics;
+using SFML.System;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,15 +10,22 @@ namespace Agario.Cells
 {
     internal class Virus : Cell
     {
-        public Virus(float x, float y, float size)
+        public Virus() 
         {
-            this.X = x;
-            this.Y = y;
-            this.Radius = size;
+            Random random = new Random();
+            X = random.Next(-Game.sizeX, Game.sizeX);
+            Y = random.Next(-Game.sizeY, Game.sizeY);
+            Circle = new CircleShape();
+            Mass = 500;
+            Radius = GetRadius(Mass);
+            
+            Circle.FillColor = new Color(0, 255, 0);
+            Circle.SetPointCount(100);
+            Circle.Position = new Vector2f(X - Radius, Y - Radius);
         }
         public override void Draw(RenderWindow window)
         {
-            throw new NotImplementedException();
+            window.Draw(Circle);
         }
     }
 }

@@ -1,4 +1,7 @@
 ﻿using Agario.Cells;
+using Agario.Interfaces;
+using NetTopologySuite.IO;
+using SFML.System;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +19,103 @@ namespace Agario
         public static bool CanEat(Cell thisCell, Cell otherCell)
         {
             return GetDistance(thisCell, otherCell) < thisCell.Radius;
+        }
+
+        public static void HandleCollisions(List<Cell> cells)
+        {
+
+            Vector2f[] correctionVectors = new Vector2f[cells.Count];
+            for (int i = 0; i < cells.Count; i++)
+            {
+                correctionVectors[i] = new Vector2f(0, 0);
+            }
+
+            for (int i = 0; i < cells.Count; i++)
+            {
+                for (int j = i + 1; j < cells.Count; j++)
+                {
+                    if (!(cells[i] is IMergeable cell1 && cells[j] is IMergeable cell2))
+                        continue;
+
+                    if (cell1.IsMergeable && cell2.IsMergeable || (cell1.Acceleration || cell2.Acceleration))
+                        continue;
+
+                    Vector2f pos1 = ((Cell)cell1).CirclePosition;
+                    Vector2f pos2 = ((Cell)cell2).CirclePosition;
+                    Vector2f delta = pos2 - pos1;
+                    float actualDistance = (float)Math.Sqrt(delta.X * delta.X + delta.Y * delta.Y);
+                    float minDistance = cells[i].Radius + cells[j].Radius + 8;
+
+                    if (actualDistance == 0)
+                        continue;
+
+                    if (actualDistance < minDistance)
+                    {
+                        float overlap = (minDistance - actualDistance) / 2;
+                        Vector2f normal = new Vector2f(delta.X / actualDistance, delta.Y / actualDistance);
+                        correctionVectors[i] -= normal * overlap;
+                        correctionVectors[j] += normal * overlap;
+                    }
+                }
+            }
+
+            for (int i = 0; i < cells.Count; i++)
+            {
+                if (cells[i] is Cell cell)
+                {
+                    cell.Circle.Position += correctionVectors[i] * 0.5f;
+
+                    cell.Circle.Position = new Vector2f(
+                        Math.Clamp(cell.Circle.Position.X, -Game.sizeX, Game.sizeX),
+                        Math.Clamp(cell.Circle.Position.Y, -Game.sizeY, Game.sizeY)
+                    );
+                }
+            }
+        }
+
+        public static void Divide(List<Cell> cells, int maxDivideCount, ref float lastDivideTime, float minMass)
+        {
+            cells.Sort((a, b) => b.Mass.CompareTo(a.Mass));
+            var cellsToAdd = new List<Cell>();
+            int currentDivideCount = cells.Count;
+            foreach (var cell in cells.OfType<IMergeable>())
+            {
+                if (currentDivideCount >= maxDivideCount) 
+                    break;
+                if (cell.Mass < 2 * minMass) 
+                    continue;
+                cell.Mass /= 2;
+                float currentTime = Timer.GameTime;
+                Cell child = cell.Split(cell.Mass, cell.X - cell.Radius * MathF.PI, cell.Y - cell.Radius * MathF.PI, currentTime);
+                lastDivideTime = currentTime;
+                cellsToAdd.Add(child);
+                currentDivideCount++;
+            }
+
+            cells.AddRange(cellsToAdd);
+        }
+
+        public static void Unite(List<Cell> cells)
+        {
+            for (int i = 0; i < cells.Count; i++)
+            {
+                if (cells[i] is not IMergeable cell1 || !cell1.IsMergeable)
+                    continue;
+
+                for (int j = i + 1; j < cells.Count; j++)
+                {
+                    if(cells[j] is not IMergeable cell2 || !cell2.IsMergeable)
+                        continue;
+                    if (i >= cells.Count || j >= cells.Count) break;
+                    if (Logic.CanEat(cells[i], cells[j]) && cells[i] != cells[j])
+                    {
+                        cells[i].Mass += cells[j].Mass;
+                        cells.Remove(cells[j]);
+                    }
+
+                }
+
+            }
         }
     }
 }

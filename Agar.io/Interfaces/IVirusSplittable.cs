@@ -7,9 +7,8 @@ using System.Threading.Tasks;
 
 namespace Agario.Interfaces
 {
-    public interface IMulticellular
+    internal interface IVirusSplittable
     {
-        public List<Cell> Cells { get; }
-
+        void VirusSplit(Cell cell);
     }
 }

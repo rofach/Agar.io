@@ -2,29 +2,24 @@
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Agario.Cells
 {
-    sealed class PlayerCell : Cell, IMove
+    sealed class PlayerCell : Cell, IMergeable
     {
         private Vector2f _direction;
+        private Vector2f _accelerationDirection;
         private float _speed;
-        private Vector2f _position;
-        private Texture _texture = new Texture("textures/test2.jpg");
         private bool _acceleration = false;
         private int _accelerationTime = 1;
-        private Vector2f _accelerationDirection;
+        private Texture _texture = new Texture("textures/test2.jpg");
         public Vector2f AccelerationDirection
         {
             get { return _accelerationDirection; }
             set { _accelerationDirection = value; }
         }
         public float DivisionTime { get; set; }
+
         public Vector2f Direction
         {
             get { return _direction; }
@@ -34,39 +29,43 @@ namespace Agario.Cells
             get { return Timer.GameTime - DivisionTime >= 30.0f; }
            
         }
-        public Vector2f Position
-        {
-            get
-            {
-                return new Vector2f(_position.X + radius, _position.Y + radius);
-            }
-        }
         public bool Acceleration
         {
             get { return _acceleration; }
             set { _acceleration = value; }
         }
-        public PlayerCell(float x = 0, float y = 0, float mass = 200)
+
+        public int ID { get; set; }
+
+        public PlayerCell(float x = 0, float y = 0, float mass = 200, int id = 1)
         {
-            this.x = x; this.y = y;
-            this.mass = mass;
-            
-            radius = GetRadius(mass);
-            circle = new CircleShape(radius);
-            circle.FillColor = Color.White;
-            _position = new Vector2f(x + radius, y + radius);
-            circle.Position = _position;
+            X = x; Y = y;
+            Circle = new CircleShape(Radius);  
+            Mass = mass;
+            Circle.FillColor = Color.White;
+            CirclePosition = new Vector2f(x + Radius, y + Radius);
+            Circle.Position = CirclePosition;
             _speed = 2.0f;
-            circle.OutlineColor = new Color(100, 0, 0);
-            circle.OutlineThickness = 4;
-            circle.Texture = _texture;
-            circle.SetPointCount(100);
+            Circle.OutlineColor = new Color(100, 0, 0);
+            Circle.OutlineThickness = 4;
+            Circle.Texture = _texture;
+            Circle.SetPointCount(100);
+            Radius = GetRadius(Mass) + Circle.OutlineThickness;
             DivisionTime = 0;
-        }        
-        
+        }
+        public Cell Split(float newMass, float x, float y, float currentTime)
+        {
+            var child = new PlayerCell(x, y, newMass, 1)
+            {
+                Acceleration = true,
+                DivisionTime = currentTime,
+                AccelerationDirection = Direction * 10000000
+            };
+            return child;
+        }
         public override void Draw(RenderWindow window)
         {
-            window.Draw(circle);
+            window.Draw(Circle);
         }
         private void UpdateSpeed()
         {
@@ -104,7 +103,6 @@ namespace Agario.Cells
                     {
                         accelerateSpeed = 4.0f - ((elapsed - 0.5f) / 0.5f) * (4.0f - 1.0f);
                     }
-                    _speed = 2.0f;
                 }
                 else
                 {
@@ -112,23 +110,18 @@ namespace Agario.Cells
                     _acceleration = false;
                 }
             }
-            if (distance < this.Radius)
+            if (distance < Radius)
             {
-                distanceSpeed = distance / this.Radius;
+                distanceSpeed = distance / Radius;
             }
            
             if (distance > _speed)
             {
-                //if (Math.Abs(this.X) > Game.sizeX && Math.Abs(mousePos.X) > Math.Abs(this.X))
-                //    dX = 0;
-                //if (Math.Abs(this.Y) > Game.sizeY && Math.Abs(mousePos.Y) > Math.Abs(this.Y))
-                //    dY = 0;
                 _direction = new Vector2f(dX / distance, dY / distance);
-
-                this.Circle.Position += (_direction * ((_speed) * Timer.DeltaTime * 100)) * distanceSpeed * accelerateSpeed;
-                _position = this.Circle.Position;
-                this.X = this.Circle.Position.X + this.Radius;
-                this.Y = this.Circle.Position.Y + this.Radius;
+                Circle.Position += _direction * _speed * Timer.DeltaTime * 100 * distanceSpeed * accelerateSpeed;
+                CirclePosition = Circle.Position;
+                X = Circle.Position.X + Radius;
+                Y = Circle.Position.Y + Radius;
             }
         }
     }

@@ -9,10 +9,9 @@ using System.Threading.Tasks;
 
 namespace Agario.Cells
 {
-    sealed class Food : Cell, IMove, IDraw
+    sealed class Food : Cell, IMovable, IDrawable
     {
         static private Random _rand = new Random();
-        //static private Color[] color_s = {Color.Blue, Color.Yellow, Color.Green, Color.Red, new Color(244, 43, 99)};
         private Cell _target;
         public Cell Target
         {
@@ -22,37 +21,40 @@ namespace Agario.Cells
         public bool IsEaten { get; set; } = false;
         public Food(int mass = 30)
         {
-            this.mass = mass;
-            radius = GetRadius(mass);
-            circle = new CircleShape(radius);
-            circle.FillColor = new Color((byte)_rand.Next(0, 255), (byte)_rand.Next(0, 255), (byte)_rand.Next(0, 255));
-            circle.SetPointCount(20);
-            ChangePos(Game.sizeX, Game.sizeY);
+            Circle = new CircleShape(Radius);
+            X = _rand.Next(-Game.sizeX, Game.sizeX);
+            Y = _rand.Next(-Game.sizeY, Game.sizeY);
+            Mass = mass;
+            this.Mass = mass;
+            Radius = GetRadius(mass);
+
+            Circle.FillColor = new Color((byte)_rand.Next(0, 255), (byte)_rand.Next(0, 255), (byte)_rand.Next(0, 255));
+            Circle.SetPointCount(20);
             IsEaten = false;
-            circle.Texture = Objects.texture;
+            Circle.Texture = Objects.texture;
         }
         public override void Draw(RenderWindow window)
         {
-            window.Draw(circle);
+            window.Draw(Circle);
         }
         public void ChangePos(int sizeX, int sizeY)
         {
-            x = _rand.Next(-sizeX, sizeX);
-            y = _rand.Next(-sizeY, sizeY);
-            Vector2f position = new Vector2f(x - radius, y - radius);
-            circle.Position = position;
+            X = _rand.Next(-sizeX, sizeX);
+            Y = _rand.Next(-sizeY, sizeY);
+            Vector2f position = new Vector2f(X - Radius, Y - Radius);
+            Circle.Position = position;
         }
         public void Move(RenderWindow window)
         {
             if (IsEaten)
             {
-                float dX = _target.X - x;
-                float dY = _target.Y - y;
+                float dX = _target.X - X;
+                float dY = _target.Y - Y;
                 float distance = (float)Math.Sqrt(Math.Pow(dX, 2) + Math.Pow(dY, 2));
                 var direction = new Vector2f(dX / distance, dY / distance);
-                circle.Position += (direction * (2 * Timer.DeltaTime * 100));
-                x = circle.Position.X + radius;
-                y = circle.Position.Y + radius;
+                Circle.Position += (direction * (2 * Timer.DeltaTime * 100)) * 2;
+                X = Circle.Position.X + Radius;
+                Y = Circle.Position.Y + Radius;
                 if (distance > Radius * 2) IsEaten = false;
             }
             else
@@ -60,13 +62,13 @@ namespace Agario.Cells
                 _rand = new Random();
                 float moveX = _rand.Next(-39, 40) * Timer.DeltaTime;
                 float moveY = _rand.Next(-39, 40) * Timer.DeltaTime;
-                if (Math.Abs(x + moveX) >= Game.sizeX)
+                if (Math.Abs(X + moveX) >= Game.sizeX)
                     moveX = 0;
-                if (Math.Abs(y + moveY) >= Game.sizeY)
+                if (Math.Abs(Y + moveY) >= Game.sizeY)
                     moveY = 0;
-                x += moveX;
-                y += moveY;
-                circle.Position = new Vector2f(x - radius, y - radius);
+                X += moveX;
+                Y += moveY;
+                Circle.Position = new Vector2f(X - Radius, Y - Radius);
             }
             
         }

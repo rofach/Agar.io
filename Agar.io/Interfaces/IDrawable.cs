@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 
 namespace Agario.Interfaces
 {
-    public interface IMove
+    public interface IDrawable
     {
-        public void Move(RenderWindow window);
+        void Draw(RenderWindow window);
     }
 }
+

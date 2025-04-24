@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.Index.Strtree;
+using NetTopologySuite.Index;
 
 
 
@@ -35,89 +36,188 @@ namespace Agario
             }
             var player = new Player();
             Objects.Add(player);
+            for(int i = 0; i < botsCount; i++)
+            {
+                Objects.Add(new BotTeleport());
+            }
+
+            for (int i = 0; i < 100; i++)
+            {
+                Objects.Add(new Virus());
+            }
         }
         
        
         void Update(RenderWindow window)
         {
             Timer.Update();
-            var spatialIndex = new STRtree<Cell>();
-            foreach (var cell in Objects.GetMoveblaObjects().OfType<Cell>())
-            {
-                Envelope env = new Envelope(cell.X, cell.X, cell.Y, cell.Y);
-                spatialIndex.Insert(env, cell);
-            }
-
-            spatialIndex.Build();
-           
-            foreach (var cell in Objects.GetCells())
-            {
-                if (cell is IMulticellular cellList)
-                {
-                    foreach (var cl in cellList.GetCells)
-                    {
-                        float searchRange = 100f;
-                        Envelope searchEnv = new Envelope(
-                            cl.X - searchRange, cl.X + searchRange,
-                            cl.Y - searchRange, cl.Y + searchRange);
-
-                        var nearbyFoods = spatialIndex.Query(searchEnv);
-
-                        foreach (var cellFood in nearbyFoods)
-                        {
-                            if (cellFood is Food food)
-                            {
-                                EatFood(cl, food, window);
-                            }
-                        }
-                    }
-                }
-                foreach(var cell2 in Objects.GetCells())
-                {
-                    if(cell != cell2)
-                    {
-                        // Обробка з'їдання великих клітин
-                    }
-                }
-            }
+            CheckVirusEating();
+            CheckFoodEating(window);
+            CheckCellEating();
+            DrawObjects(window);
+            MoveCells(window);
+        }
+        private void DrawObjects(RenderWindow window)
+        {
+            List<Cell> cellsToDraw = new List<Cell>();
             foreach (var obj in Objects.GetDrawableObjects())
             {
-                List<Cell> cellsToDraw = new List<Cell>();
                 if (obj is Food food)
                 {
                     if (IsInViewZone(food, _camera))
                         food.Draw(window);
                 }
-                else if (obj is IMulticellular cellList)
+                else if (obj is ICellManager<Cell> cellManager)
                 {
-                    foreach (var cell in cellList.GetCells)
+                    foreach (var cell in cellManager.Cells)
                     {
                         if (IsInViewZone(cell, _camera))
                             cellsToDraw.Add(cell);
                     }
                 }
-                cellsToDraw.Sort((a, b) => a.Radius.CompareTo(b.Radius));
-                foreach(var cell in cellsToDraw)
+                else if (obj is Virus virus)
                 {
-                    cell.Draw(window);
+                    if (IsInViewZone(virus, _camera))
+                        virus.Draw(window);
                 }
             }
+            cellsToDraw.Sort((a, b) => a.Radius.CompareTo(b.Radius));
+            foreach (var cell in cellsToDraw)
+            {
+                cell.Draw(window);
+            }
+        }
+        private void MoveCells(RenderWindow window)
+        {
+            foreach(var cell in Objects.GetMoveblaObjects())
+            {
+                cell.Move(window);
+            }
+        }
+        private void CheckVirusEating()
+        {
+            var spatialIndex = new STRtree<Cell>();
+            foreach (var cell in Objects.GetDrawableObjects().OfType<Virus>())
+            {
+                Envelope env = new Envelope(cell.X - cell.Radius,
+                                            cell.X + cell.Radius,
+                                            cell.Y - cell.Radius,
+                                            cell.Y + cell.Radius);
+                spatialIndex.Insert(env, cell);
+            }
+            foreach (var cellManagers in Objects.GetCells().OfType<IMulticellular>())
+            {
+                if (cellManagers is not IVirusSplittable splittableCell) continue;
+                List<Cell> cells = new List<Cell>();
+                foreach (var cell in cellManagers.Cells)
+                {
+                    float searchRange = 2 * cell.Radius;
+                    Envelope searchEnv = new Envelope(
+                        cell.X - searchRange, cell.X + searchRange,
+                        cell.Y - searchRange, cell.Y + searchRange);
 
-            Objects.MoveObj(window);
+                    var nearbyViruses = spatialIndex.Query(searchEnv);
+                    
+                    foreach (var virus in nearbyViruses)
+                    {
+                        if(CanEat(cell, virus))
+                        {
+                            cell.Mass += virus.Mass;
+                            //plCell.VirusSplit(cl);
+                            cells.Add(cell);
+                            Objects.Remove(virus);
+                        }
+                    }
+                    
+                }
+                foreach (var cel in cells)
+                {
+                    splittableCell.VirusSplit(cel);
+                }
+            }
+        }
+        private void CheckFoodEating(RenderWindow window)
+        {
+            var spatialIndex = new STRtree<Cell>();
+            foreach (var cell in Objects.GetMoveblaObjects().OfType<Cell>())
+            {
+                Envelope env = new Envelope(cell.X - cell.Radius,
+                                            cell.X + cell.Radius,
+                                            cell.Y - cell.Radius,
+                                            cell.Y + cell.Radius);
+                spatialIndex.Insert(env, cell);
+            }
+
+            spatialIndex.Build();
+
+            foreach (var cell in Objects.GetCells().OfType<IMulticellular>())
+            {
+                foreach (var cl in cell.Cells)
+                {
+                    float searchRange = 50f + cl.Radius;
+                    Envelope searchEnv = new Envelope(
+                        cl.X - searchRange, cl.X + searchRange,
+                        cl.Y - searchRange, cl.Y + searchRange);
+
+                    var nearbyFoods = spatialIndex.Query(searchEnv);
+
+                    foreach (var cellFood in nearbyFoods)
+                    {
+                        if (cellFood is Food food)
+                        {
+                            EatFood(cl, food, window);
+
+                        }
+                    }
+                }
+            }
+        }
+        private void CheckCellEating()
+        {
+            var allCells = Objects.GetMoveblaObjects().OfType<ICellManager<Cell>>()
+                             .SelectMany(c => c.Cells).ToList();
+
+            for (int i = 0; i < allCells.Count; i++)
+            {
+                for (int j = i + 1; j < allCells.Count; j++)
+                {
+                    var eater = allCells[i];
+                    var victim = allCells[j];
+                    if(eater is IMergeable cell1 && victim is IMergeable cell2)
+                    {
+                        if(cell1.ID == cell2.ID) continue;
+                    }
+                    if (CanEat(eater, victim) && eater.Radius > victim.Radius * 1.2f)
+                    {
+                        eater.Mass += victim.Mass;
+                        Objects.RemoveCellFromAllManagers(victim);
+                    }
+                    else if (CanEat(victim, eater) && victim.Radius > eater.Radius * 1.2f)
+                    {
+                        victim.Mass += eater.Mass;
+                        Objects.RemoveCellFromAllManagers(eater);
+                    }
+                }
+            }
+        }
+        private void EatCell(Cell eater, Cell victim, RenderWindow window)
+        {
+            float dx = eater.X - victim.X;
+            float dy = eater.Y - victim.Y;
+            float distSq = dx * dx + dy * dy;
+            if (distSq <= eater.Radius * eater.Radius && eater.Radius > victim.Radius)
+            {
+                eater.Mass += victim.Mass;
+            }
         }
         private void EatFood(Cell cell, Food food, RenderWindow window)
         {
             float dist = GetDistance(cell, food);
-            if (dist < cell.Radius + food.Radius * 2 && food.IsEaten == false)
+            if (dist < cell.Radius + food.Radius * 4 && food.IsEaten == false)
             {
                 food.Target = cell;
                 food.IsEaten = true;
             }
-            /*else
-            {
-                food.IsEaten = false;
-                return;
-            }*/
             if (dist < cell.Radius)
             {
                 float prevRadius = cell.Radius;
@@ -139,7 +239,7 @@ namespace Agario
         }
         private bool CanEat(Cell thisCell, Cell otherCell)
         {
-            return GetDistance(thisCell, otherCell) < thisCell.Radius;
+            return GetDistance(thisCell, otherCell) < thisCell.Radius; //&& thisCell.Mass >= otherCell.Mass * 1.2f;
         }
         private bool IsInViewZone(Cell gameObj, View camera)
         {
@@ -155,11 +255,15 @@ namespace Agario
         {
             int count = 0;
             Vector2f center = new Vector2f(0, 0);
+            if (Objects.GetMoveblaObjects().Where(x => x is Player).Count() == 0)
+            {
+                return _camera.Center;
+            }
             foreach (var obj in Objects.GetMoveblaObjects())
             {
                 if (obj is Player player)
                 {
-                    foreach (var pl in player.cells)
+                    foreach (var pl in player.Cells)
                     {
                         count++;
                         center += new Vector2f(pl.X, pl.Y);
@@ -169,7 +273,6 @@ namespace Agario
             return center / count;
 
         }
-
         public void Run()
         {
             var settings = new ContextSettings
@@ -197,8 +300,5 @@ namespace Agario
                 
             }
         }
-
-
-
     }
 }

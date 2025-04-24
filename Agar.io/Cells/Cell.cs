@@ -1,5 +1,6 @@
 ﻿using Agario.Interfaces;
 using SFML.Graphics;
+using SFML.System;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,29 +9,40 @@ using System.Threading.Tasks;
 
 namespace Agario.Cells
 {
-    abstract public class Cell : IDraw
+    abstract public class Cell : IDrawable
     {
 
-        protected float x, y, mass, radius;
-        protected CircleShape circle;
-        
+        private float _x, _y, _mass, _radius;
+        private Vector2f _position;
+        private CircleShape? _circle;
         public float X { 
-            set { x = value; }
-            get { return x; } }
+            set { _x = value; }
+            get { return _x; } }
         public float Y { 
-            set { y = value; }
-            get { return y; } }
-        public float Radius { 
-            set { radius = value; }
-            get { return radius; } }
-        public CircleShape Circle { get { return circle; } set { circle = value; } }
-        public float Mass { get { return mass; } set { mass = value; radius = GetRadius(mass);  circle.Radius = radius; } }
+            set { _y = value; }
+            get { return _y; } }
+        public float Radius {
+            set
+            {
+                if (value <= 0) throw new ArgumentException("Radius must be positive");
+                _radius = value;
+            }
+            get { return _radius; } }
+        public Vector2f CirclePosition{ 
+            get { return new Vector2f(_position.X + _radius, _position.Y + _radius);}
+            protected set { _position = value; } }
+        public CircleShape Circle { get { return _circle; } protected set { _circle = value; } }
+        public float Mass { get { return _mass; } 
+            set { 
+                _mass = value; 
+                _radius = GetRadius(_mass);  
+                _circle.Radius = _radius; } }
 
         public abstract void Draw(RenderWindow window);
 
         protected float GetRadius(float mass)
         {
-            return (float)Math.Sqrt(mass);
+            return MathF.Sqrt(mass);
         }
     }
 }

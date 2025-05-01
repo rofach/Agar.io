@@ -75,12 +75,12 @@ namespace Agario
             }
         }
 
-        public static void Divide(List<Cell> cells, int maxDivideCount, ref float lastDivideTime, float minMass)
+        public static void Divide(ICellManager<Cell> cellManager, List<Cell> cells, int maxDivideCount, ref float lastDivideTime, float minMass)
         {
             cells.Sort((a, b) => b.Mass.CompareTo(a.Mass));
             var cellsToAdd = new List<Cell>();
             int currentDivideCount = cells.Count;
-            foreach (var cell in cells.OfType<IMergeable>())
+            foreach (var cell in cells.OfType<IMergeable>().ToList())
             {
                 if (currentDivideCount >= maxDivideCount) 
                     break;
@@ -88,13 +88,13 @@ namespace Agario
                     continue;
                 cell.Mass /= 2;
                 float currentTime = Timer.GameTime;
-                Cell child = cell.Split(cell.Mass, cell.X - cell.Radius * MathF.PI, cell.Y - cell.Radius * MathF.PI, currentTime);
+                Cell child = cellManager.GetSplitCell((Cell)cell, cell.Mass, cell.X - cell.Radius * MathF.PI, cell.Y - cell.Radius * MathF.PI, currentTime);//cell.Split(cell.Mass, cell.X - cell.Radius * MathF.PI, cell.Y - cell.Radius * MathF.PI, currentTime);
                 lastDivideTime = currentTime;
-                cellsToAdd.Add(child);
+                //cellsToAdd.Add(child);
+                cells.Add(child);
                 currentDivideCount++;
             }
 
-            cells.AddRange(cellsToAdd);
         }
 
         public static void Merge(List<Cell> cells)

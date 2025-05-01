@@ -12,11 +12,16 @@ namespace Agario.Cells
         private CircleShape _circle;
 
         public float X { 
-            set { _x = value; }
+            set {_x = value; }
             get { return _x; } }
         public float Y { 
             set { _y = value; }
             get { return _y; } }
+        public Vector2f Position
+        {
+            get { return new Vector2f(_x, _y); }
+            set { _position = value; _x = value.X; _y = value.Y; CirclePosition = new Vector2f(value.X - _radius, value.Y - _radius); }
+        }
         public float Radius {
             private set
             {
@@ -26,7 +31,7 @@ namespace Agario.Cells
             get { return _radius; } }
         public Vector2f CirclePosition { 
             get { return new Vector2f(_position.X + _radius, _position.Y + _radius);}
-            protected set { _position = value; } }
+            protected set { _position = value; _circle.Position = value; } }
         public CircleShape Circle { get { return _circle; } protected set { _circle = value; } }
         public float Mass { 
             get { return _mass; } 
@@ -34,7 +39,13 @@ namespace Agario.Cells
                 _mass = value; 
                 _radius = CalculateRadius(_mass);  
                 _circle.Radius = _radius; } }
-
+        public void InitializeCircle(float x, float y, float mass)
+        {
+            X = x; Y = y;
+            Mass = mass;
+            CirclePosition = new Vector2f(x + Radius, y + Radius);
+            Circle.Position = CirclePosition;
+        }
         public Cell()
         {
             _circle = new CircleShape();
@@ -42,6 +53,7 @@ namespace Agario.Cells
             _circle.OutlineThickness = 1;
             _circle.OutlineColor = Color.Black;
             _circle.SetPointCount(100);
+
         }
         public abstract void Draw(RenderWindow window);
 

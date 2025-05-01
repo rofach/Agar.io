@@ -8,12 +8,11 @@ using NetTopologySuite.Index.Strtree;
 
 namespace Agario
 {
-
     sealed public class Game
     {
         private View _camera;
         public static int sizeX, sizeY;
-        private float _prevMass;
+        private float _prevPlayerMass;
         private Player _player;
         public Game(int foodCount = 0, int botsCount = 0)
         {
@@ -36,16 +35,20 @@ namespace Agario
                 Objects.Add(new Virus());
             }
         }
-       
+
         private void Update(RenderWindow window)
         {
             Timer.Update();
-            _prevMass = _player.GetTotalMass();
+            _prevPlayerMass = _player.GetTotalMass();
             CheckVirusEating();
             CheckFoodEating(window);
             CheckCellEating();
             DrawObjects(window);
             MoveCells(window);
+
+            //Thread thr = new Thread(CheckVirusEating);
+            //thr.Start();
+
         }
         private void DrawObjects(RenderWindow window)
         {
@@ -119,10 +122,14 @@ namespace Agario
                     }
                     
                 }
-                foreach (var cel in cells)
+
+                foreach (var cell in cells)
                 {
-                    splittableCell.VirusSplit(cel);
+                     splittableCell.VirusSplit(cell);
                 }
+                
+
+                
             }
         }
         private void CheckFoodEating(RenderWindow window)
@@ -176,12 +183,12 @@ namespace Agario
                     {
                         if(cell1.ID == cell2.ID) continue;
                     }
-                    if (CanEat(eater, victim) && eater.Radius > victim.Radius * 1.2f)
+                    if (Logic.CanEat(eater, victim))
                     {
                         eater.Mass += victim.Mass;
                         Objects.RemoveCellFromAllManagers(victim);
                     }
-                    else if (CanEat(victim, eater) && victim.Radius > eater.Radius * 1.2f)
+                    else if (Logic.CanEat(victim, eater))
                     {
                         victim.Mass += eater.Mass;
                         Objects.RemoveCellFromAllManagers(eater);
@@ -201,7 +208,7 @@ namespace Agario
         }
         private void EatFood(Cell cell, Food food, RenderWindow window)
         {
-            float dist = GetDistance(cell, food);
+            float dist = Logic.GetDistanceBetweenCells(cell, food);
             if (dist < cell.Radius + food.Radius * 4 && food.IsEaten == false)
             {
                 food.Target = cell;
@@ -218,10 +225,6 @@ namespace Agario
         private float GetDistance(Cell obj1, Cell obj2)
         {
             return (float)Math.Sqrt(Math.Pow(obj1.X - obj2.X, 2) + Math.Pow(obj1.Y - obj2.Y, 2));
-        }
-        private bool CanEat(Cell thisCell, Cell otherCell)
-        {
-            return GetDistance(thisCell, otherCell) < thisCell.Radius; //&& thisCell.Mass >= otherCell.Mass * 1.2f;
         }
         private bool IsInViewZone(Cell gameObj, View camera)
         {

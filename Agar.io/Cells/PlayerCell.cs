@@ -51,7 +51,8 @@ namespace Agario.Cells
 
         public PlayerCell(float x = 0, float y = 0, float mass = 200, int id = 1) 
         {
-            X = x; Y = y;           
+            //X = x; Y = y;
+            Position = new Vector2f(x, y);
             Mass = mass;
             CirclePosition = new Vector2f(x + Radius, y + Radius);
             Circle.FillColor = Color.White;
@@ -115,6 +116,11 @@ namespace Agario.Cells
                 else
                 {
                     accelerateSpeed = 4.0f - ((traveledPath - _accelerationDistance / 2) / (_accelerationDistance / 2)) * (4.0f - 1.0f);
+                }
+                if(elapsedTime > 5)
+                {
+                    _acceleration = false;
+                    accelerateSpeed = 1.0f;
                 }
             }
             if (distance < Radius)

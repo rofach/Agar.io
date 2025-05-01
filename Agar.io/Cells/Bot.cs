@@ -15,6 +15,8 @@ namespace Agario.Cells
             get { return _cells; }
             }
 
+        public List<Cell> FreeCells => throw new NotImplementedException();
+
         public void AddCell(Cell cell)
         {
             _cells.Add(cell);
@@ -45,5 +47,10 @@ namespace Agario.Cells
 
         
         public abstract void SuperPower();
+
+        public Cell GetSplitCell(Cell cell, float newMass, float x, float y, float currentTime)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

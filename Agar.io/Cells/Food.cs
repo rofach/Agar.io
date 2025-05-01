@@ -6,9 +6,9 @@ namespace Agario.Cells
 {
     sealed class Food : Cell, IMovable, IDrawable
     {
-        static private Random _rand = new Random();
-        private Cell _target;
-        public Cell Target
+        private Random _rand = new Random();
+        private Cell? _target;
+        public Cell? Target
         {
             get { return _target; }
             set { _target = value; }
@@ -20,9 +20,6 @@ namespace Agario.Cells
             X = _rand.Next(-Game.sizeX, Game.sizeX);
             Y = _rand.Next(-Game.sizeY, Game.sizeY);
             Mass = mass;
-            this.Mass = mass;
-            Radius = CalculateRadius(mass);
-
             Circle.FillColor = new Color((byte)_rand.Next(0, 255), (byte)_rand.Next(0, 255), (byte)_rand.Next(0, 255));
             Circle.SetPointCount(20);
             IsEaten = false;

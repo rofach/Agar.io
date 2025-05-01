@@ -9,7 +9,8 @@ namespace Agario.Cells
 
         private float _x, _y, _mass, _radius;
         private Vector2f _position;
-        private CircleShape? _circle;
+        private CircleShape _circle;
+
         public float X { 
             set { _x = value; }
             get { return _x; } }
@@ -17,27 +18,45 @@ namespace Agario.Cells
             set { _y = value; }
             get { return _y; } }
         public float Radius {
-            set
+            private set
             {
                 if (value <= 0) throw new ArgumentException("Radius must be positive");
-                _radius = value;
+                _radius = CalculateRadius(_mass) + (_circle?.OutlineThickness ?? 0);
             }
             get { return _radius; } }
-        public Vector2f CirclePosition{ 
+        public Vector2f CirclePosition { 
             get { return new Vector2f(_position.X + _radius, _position.Y + _radius);}
             protected set { _position = value; } }
         public CircleShape Circle { get { return _circle; } protected set { _circle = value; } }
-        public float Mass { get { return _mass; } 
+        public float Mass { 
+            get { return _mass; } 
             set { 
                 _mass = value; 
                 _radius = CalculateRadius(_mass);  
                 _circle.Radius = _radius; } }
 
+        public Cell()
+        {
+            _circle = new CircleShape();
+            _circle.FillColor = Color.White;
+            _circle.OutlineThickness = 1;
+            _circle.OutlineColor = Color.Black;
+            _circle.SetPointCount(100);
+        }
         public abstract void Draw(RenderWindow window);
 
         protected float CalculateRadius(float mass)
         {
             return MathF.Sqrt(mass);
         }
+        public static bool operator <(Cell that, Cell other)
+        {
+            return (that.Radius * 1.2 < other.Radius);
+        }
+        public static bool operator >(Cell that, Cell other)
+        {
+            return (that.Radius > other.Radius * 1.2);
+        }
+
     }
 }

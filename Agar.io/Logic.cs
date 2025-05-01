@@ -4,7 +4,7 @@ using SFML.System;
 
 namespace Agario
 {
-    public static class Logic
+    public class Logic
     {
         public static float GetDistanceBetweenPoints(Vector2f point1, Vector2f point2)
         {
@@ -15,6 +15,10 @@ namespace Agario
             return (float)Math.Sqrt(Math.Pow(obj1.X - obj2.X, 2) + Math.Pow(obj1.Y - obj2.Y, 2));
         }
         public static bool CanEat(Cell thisCell, Cell otherCell)
+        {
+            return CanMerge(thisCell, otherCell) && thisCell > otherCell;
+        }
+        public static bool CanMerge(Cell thisCell, Cell otherCell)
         {
             return GetDistanceBetweenCells(thisCell, otherCell) < thisCell.Radius;
         }
@@ -93,7 +97,7 @@ namespace Agario
             cells.AddRange(cellsToAdd);
         }
 
-        public static void Unite(List<Cell> cells)
+        public static void Merge(List<Cell> cells)
         {
             for (int i = 0; i < cells.Count; i++)
             {
@@ -105,12 +109,11 @@ namespace Agario
                     if(cells[j] is not IMergeable cell2 || !cell2.IsMergeable)
                         continue;
                     if (i >= cells.Count || j >= cells.Count) break;
-                    if (Logic.CanEat(cells[i], cells[j]) && cells[i] != cells[j])
+                    if (CanMerge(cells[i], cells[j]) && cells[i] != cells[j])
                     {
                         cells[i].Mass += cells[j].Mass;
                         cells.Remove(cells[j]);
                     }
-
                 }
 
             }

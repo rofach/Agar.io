@@ -16,7 +16,7 @@ namespace Agario.Cells
         private int id = 1;
         public Player()
         {
-            _cells.Add(new PlayerCell(mass: 1000, id: 1));
+            _cells.Add(new PlayerCell(mass: 200, id: 1));
             _cellsCount = _cells.Count;
         }
         public List<Cell> Cells
@@ -59,7 +59,7 @@ namespace Agario.Cells
                 _lastDivideTime = Timer.DeltaTime;
                 Logic.Divide(_cells, _maxCellsCount,ref _lastDivideTime, _minMass);
             }
-            Logic.Unite(_cells);
+            Logic.Merge(_cells);
             foreach (var cell in _cells)
             {
                 if (cell is IMovable playerCell)
@@ -85,5 +85,8 @@ namespace Agario.Cells
         {
             _cells.Remove(cell);
         }
+
+        public float GetTotalMass() => _cells.Sum(cell => cell.Mass);
+
     }
 }

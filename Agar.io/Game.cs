@@ -13,7 +13,8 @@ namespace Agario
     {
         private View _camera;
         public static int sizeX, sizeY;
-
+        private float _prevMass;
+        private Player _player;
         public Game(int foodCount = 0, int botsCount = 0)
         {
             sizeX = 3000;
@@ -23,8 +24,8 @@ namespace Agario
                 Objects.Add(new Food(50));
 
             }
-            var player = new Player();
-            Objects.Add(player);
+            _player = new Player();
+            Objects.Add(_player);
             for(int i = 0; i < botsCount; i++)
             {
                 Objects.Add(new BotTeleport());
@@ -35,11 +36,11 @@ namespace Agario
                 Objects.Add(new Virus());
             }
         }
-        
        
-        void Update(RenderWindow window)
+        private void Update(RenderWindow window)
         {
             Timer.Update();
+            _prevMass = _player.GetTotalMass();
             CheckVirusEating();
             CheckFoodEating(window);
             CheckCellEating();
@@ -210,13 +211,6 @@ namespace Agario
             {
                 float prevRadius = cell.Radius;
                 cell.Mass += food.Mass;
-                if (cell is PlayerCell)
-                {
-                    float radiusDifference = cell.Radius - prevRadius;
-                    float aspectRatio = window.Size.X / (float)window.Size.Y;
-                    _camera.Size += new Vector2f(radiusDifference * aspectRatio, radiusDifference);
-                }
-
                 food.ChangePos(sizeX, sizeY);
                 food.IsEaten = false;
             }
@@ -243,23 +237,26 @@ namespace Agario
         {
             int count = 0;
             Vector2f center = new Vector2f(0, 0);
-            if (Objects.GetMoveblaObjects().Where(x => x is Player).Count() == 0)
-            {
+            if (_player == null || _player.Cells.Count == 0)
                 return _camera.Center;
-            }
-            foreach (var obj in Objects.GetMoveblaObjects())
+            Vector2f vec = new();
+            foreach (var cell in _player.Cells)
             {
-                if (obj is Player player)
-                {
-                    foreach (var pl in player.Cells)
-                    {
-                        count++;
-                        center += new Vector2f(pl.X, pl.Y);
-                    }
-                }
+
+                count++;
+                center += new Vector2f(cell.X, cell.Y);
+
             }
             return center / count;
 
+        }
+        private void UpdateCameraSize(View camera, RenderWindow window)
+        {           
+            if (_player == null || _player.Cells.Count == 0)
+                return;
+            float massDifference = (_player.GetTotalMass() - 200) / 50;
+            float aspectRatio = window.Size.X / (float)window.Size.Y;
+            _camera.Size = new Vector2f((400 + massDifference) * aspectRatio, 400 + massDifference);
         }
         public void Run()
         {
@@ -279,6 +276,7 @@ namespace Agario
                     FloatRect visibleArea = new FloatRect(0, 0, e.Width / 2, e.Height / 2);
                     _camera = new View(visibleArea);
                 };
+                UpdateCameraSize(_camera, window);
                 _camera.Center = GetCenterCamera();              
                 window.SetView(_camera);
                 window.DispatchEvents();
@@ -288,5 +286,7 @@ namespace Agario
                 
             }
         }
+       
+    
     }
 }

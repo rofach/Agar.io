@@ -19,11 +19,10 @@ namespace Agario.Cells
             this.X = x;
             this.Y = y;
             this.Mass = mass;
-            Radius = CalculateRadius(mass);
             Circle.FillColor = new Color((byte)_rand.Next(0, 255), (byte)_rand.Next(0, 255), (byte)_rand.Next(0, 255));
             Circle.SetPointCount(100);
             ChangePos(Game.sizeX, Game.sizeY);
-            Circle.Texture = Objects.texture;
+            //Circle.Texture = Objects.texture;
         }
         public void ChangePos(int sizeX, int sizeY)
         {

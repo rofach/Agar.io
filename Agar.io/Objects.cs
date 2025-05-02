@@ -13,14 +13,14 @@ namespace Agario
     {
         private static List<IDrawable> _drawableObjects = new();
         private static List<IMovable> _movableObjects = new();
-        private static List<IMulticellular> _cellManagers = new();
+        private static List<ICellManager<Cell>> _cellManagers = new();
         public static void Add<T>(T obj)
         {
             if (obj == null) throw new ArgumentNullException(nameof(obj));
             if (obj is IMovable)
             {
                 _movableObjects.Add(obj as IMovable);
-                if(obj is IMulticellular cell)
+                if(obj is ICellManager<Cell> cell)
                     _cellManagers.Add(cell);
             }
             if (obj is IDrawable)
@@ -43,7 +43,7 @@ namespace Agario
             if (obj is IMovable)
             {
                 _movableObjects.Remove(obj as IMovable);
-                if (obj is IMulticellular cell)
+                if (obj is ICellManager<Cell> cell)
                     _cellManagers.Remove(cell);
             }
             if (obj is IDrawable)
@@ -73,7 +73,7 @@ namespace Agario
         public static Texture texture = new Texture("textures/text1.png");
         public static IEnumerable<IDrawable> GetDrawableObjects() => _drawableObjects;
         public static  IEnumerable<IMovable> GetMoveblaObjects() => _movableObjects;
-        public static  IEnumerable<IMulticellular> GetCells() => _cellManagers;
+        public static  IEnumerable<ICellManager<Cell>> GetCells() => _cellManagers;
        
         
     }

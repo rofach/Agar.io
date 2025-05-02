@@ -15,10 +15,8 @@ namespace Agario.Cells
         static private Random _rand = new Random();
         public BotCell(float x, float y, float mass)
         {
-            Circle = new CircleShape(Radius);
-            this.X = x;
-            this.Y = y;
-            this.Mass = mass;
+            //Circle = new CircleShape(Radius);
+            this.Mass = mass * 10;
             Circle.FillColor = new Color((byte)_rand.Next(0, 255), (byte)_rand.Next(0, 255), (byte)_rand.Next(0, 255));
             Circle.SetPointCount(100);
             ChangePos(Game.sizeX, Game.sizeY);
@@ -26,10 +24,7 @@ namespace Agario.Cells
         }
         public void ChangePos(int sizeX, int sizeY)
         {
-            X = _rand.Next(-sizeX, sizeX);
-            Y = _rand.Next(-sizeY, sizeY);
-            Vector2f position = new Vector2f(X - Radius, Y - Radius);
-            Circle.Position = position;
+            Position = new Vector2f(_rand.Next(-sizeX, sizeX), _rand.Next(-sizeY, sizeY));
         }
         public override void Draw(RenderWindow window)
         {
@@ -57,9 +52,7 @@ namespace Agario.Cells
                 float dY = _targetPoint.Y - Y;
                 float distance = (float)Math.Sqrt(Math.Pow(dX, 2) + Math.Pow(dY, 2));
                 _direction = new Vector2f(dX / distance, dY / distance);
-                Circle.Position += (_direction * (_speed * Timer.DeltaTime * 100));
-                X = Circle.Position.X + Radius;
-                Y = Circle.Position.Y + Radius;
+                Position += (_direction * (_speed * Timer.DeltaTime * 100));
             }
             else
             {

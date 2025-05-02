@@ -20,6 +20,5 @@ namespace Agario.Interfaces
         public bool Acceleration { get; }
         Vector2f AccelerationDirection { get; set; }
         Vector2f Direction { get; }
-        Cell Split(float newMass, float x, float y, float currentTime);
     }
 }

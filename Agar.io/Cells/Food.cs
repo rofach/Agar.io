@@ -4,7 +4,7 @@ using SFML.System;
 
 namespace Agario.Cells
 {
-    sealed class Food : Cell, IMovable, IDrawable
+    sealed class Food : Cell, IDrawable
     {
         private Random _rand = new Random();
         private Cell? _target;
@@ -16,14 +16,12 @@ namespace Agario.Cells
         public bool IsEaten { get; set; } = false;
         public Food(int mass = 30)
         {
-            Circle = new CircleShape(Radius);
-            X = _rand.Next(-Game.sizeX, Game.sizeX);
-            Y = _rand.Next(-Game.sizeY, Game.sizeY);
+            ChangePos(Game.sizeX, Game.sizeY);
             Mass = mass;
             Circle.FillColor = new Color((byte)_rand.Next(0, 255), (byte)_rand.Next(0, 255), (byte)_rand.Next(0, 255));
             Circle.SetPointCount(20);
             IsEaten = false;
-            Circle.Texture = Objects.texture;
+            //Circle.Texture = Objects.texture;
         }
         public override void Draw(RenderWindow window)
         {
@@ -31,10 +29,7 @@ namespace Agario.Cells
         }
         public void ChangePos(int sizeX, int sizeY)
         {
-            X = _rand.Next(-sizeX, sizeX);
-            Y = _rand.Next(-sizeY, sizeY);
-            Vector2f position = new Vector2f(X - Radius, Y - Radius);
-            Circle.Position = position;
+            Position = new Vector2f(_rand.Next(-sizeX, sizeX), _rand.Next(-sizeY, sizeY));
         }
         public void Move(RenderWindow window)
         {
@@ -44,9 +39,7 @@ namespace Agario.Cells
                 float dY = _target.Y - Y;
                 float distance = MathF.Sqrt(MathF.Pow(dX, 2) + MathF.Pow(dY, 2));
                 var direction = new Vector2f(dX / distance, dY / distance);
-                Circle.Position += (direction * (2 * Timer.DeltaTime * 100)) * 2;
-                X = Circle.Position.X + Radius;
-                Y = Circle.Position.Y + Radius;
+                Position += (direction * (2 * Timer.DeltaTime * 100)) * 2;
                 if (distance > Radius * 2) IsEaten = false;
             }
             else
@@ -58,9 +51,7 @@ namespace Agario.Cells
                     moveX = 0;
                 if (Math.Abs(Y + moveY) >= Game.sizeY)
                     moveY = 0;
-                X += moveX;
-                Y += moveY;
-                Circle.Position = new Vector2f(X - Radius, Y - Radius);
+                Position += new Vector2f(moveX, moveY);
             }
             
         }

@@ -51,12 +51,11 @@ namespace Agario.Cells
 
         public PlayerCell(float x = 0, float y = 0, float mass = 200, int id = 1) 
         {
-            //X = x; Y = y;
             Position = new Vector2f(x, y);
             Mass = mass;
-            CirclePosition = new Vector2f(x + Radius, y + Radius);
+            //CirclePosition = new Vector2f(x + Radius, y + Radius);
             Circle.FillColor = Color.White;
-            Circle.Position = CirclePosition;
+            //Circle.Position = CirclePosition;
             Circle.OutlineColor = new Color(100, 0, 0);
             Circle.OutlineThickness = 4;
             Circle.Texture = _texture;
@@ -64,19 +63,6 @@ namespace Agario.Cells
             _speed = 2.0f;
             _accelerationTime = 1;
             DivisionTime = 0;
-        }
-        public Cell Split(float newMass, float x, float y, float currentTime)
-        {
-            var child = new PlayerCell(x, y, newMass, 1)
-            {
-                Acceleration = true,
-                DivisionTime = currentTime,
-                AccelerationDirection = Direction * 10000,
-                //ПРИДУМАТИ ЯК кОНТРОЛЮВАТИ  ВІДСТАНЬ ВІД ТОЧКИ ОСКІЛЬКИ ПРИ ВЕЛИКИХ ВІДСТАНЯХ БУДЕ ВЕЛИКИЙ ПРИЖОК
-                AccelerationDistance = Radius * 6,
-                StartAccelerationPoint = new Vector2f(X, Y)
-            };
-            return child;
         }
         public override void Draw(RenderWindow window)
         {
@@ -130,10 +116,7 @@ namespace Agario.Cells
             if (distance > _speed)
             {
                 _direction = new Vector2f(dX / distance, dY / distance);
-                Circle.Position += _direction * _speed * Timer.DeltaTime * 100 * distanceSpeed * accelerateSpeed;
-                CirclePosition = Circle.Position;
-                X = Circle.Position.X + Radius;
-                Y = Circle.Position.Y + Radius;
+                Position += _direction * _speed * Timer.DeltaTime * 100 * distanceSpeed * accelerateSpeed;
             }
         }
     }

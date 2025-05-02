@@ -42,8 +42,8 @@ namespace Agario
                     if (cell1.IsMergeable && cell2.IsMergeable || (cell1.Acceleration || cell2.Acceleration))
                         continue;
 
-                    Vector2f pos1 = ((Cell)cell1).CirclePosition;
-                    Vector2f pos2 = ((Cell)cell2).CirclePosition;
+                    Vector2f pos1 = ((Cell)cell1).Position;
+                    Vector2f pos2 = ((Cell)cell2).Position;
                     Vector2f delta = pos2 - pos1;
                     float actualDistance = (float)Math.Sqrt(delta.X * delta.X + delta.Y * delta.Y);
                     float minDistance = cells[i].Radius + cells[j].Radius + 8;
@@ -65,11 +65,11 @@ namespace Agario
             {
                 if (cells[i] is Cell cell)
                 {
-                    cell.Circle.Position += correctionVectors[i] * 0.5f;
+                    cell.Position += correctionVectors[i] * 0.5f;
 
-                    cell.Circle.Position = new Vector2f(
-                        Math.Clamp(cell.Circle.Position.X, -Game.sizeX, Game.sizeX),
-                        Math.Clamp(cell.Circle.Position.Y, -Game.sizeY, Game.sizeY)
+                    cell.Position = new Vector2f(
+                        Math.Clamp(cell.Position.X, -Game.sizeX, Game.sizeX),
+                        Math.Clamp(cell.Position.Y, -Game.sizeY, Game.sizeY)
                     );
                 }
             }
@@ -78,7 +78,6 @@ namespace Agario
         public static void Divide(ICellManager<Cell> cellManager, List<Cell> cells, int maxDivideCount, ref float lastDivideTime, float minMass)
         {
             cells.Sort((a, b) => b.Mass.CompareTo(a.Mass));
-            var cellsToAdd = new List<Cell>();
             int currentDivideCount = cells.Count;
             foreach (var cell in cells.OfType<IMergeable>().ToList())
             {
@@ -88,13 +87,11 @@ namespace Agario
                     continue;
                 cell.Mass /= 2;
                 float currentTime = Timer.GameTime;
-                Cell child = cellManager.GetSplitCell((Cell)cell, cell.Mass, cell.X - cell.Radius * MathF.PI, cell.Y - cell.Radius * MathF.PI, currentTime);//cell.Split(cell.Mass, cell.X - cell.Radius * MathF.PI, cell.Y - cell.Radius * MathF.PI, currentTime);
+                Cell child = cellManager.GetSplitCell((Cell)cell, cell.Mass, cell.X, cell.Y, currentTime);
                 lastDivideTime = currentTime;
-                //cellsToAdd.Add(child);
                 cells.Add(child);
                 currentDivideCount++;
             }
-
         }
 
         public static void Merge(List<Cell> cells)
@@ -115,7 +112,6 @@ namespace Agario
                         cells.Remove(cells[j]);
                     }
                 }
-
             }
         }
     }

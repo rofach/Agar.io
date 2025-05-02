@@ -98,7 +98,7 @@ namespace Agario
                                             cell.Y + cell.Radius);
                 spatialIndex.Insert(env, cell);
             }
-            foreach (var cellManagers in Objects.GetCells().OfType<IMulticellular>())
+            foreach (var cellManagers in Objects.GetCells().OfType<ICellManager<Cell>>())
             {
                 if (cellManagers is not IVirusSplittable splittableCell) continue;
                 List<Cell> cells = new List<Cell>();
@@ -135,7 +135,7 @@ namespace Agario
         private void CheckFoodEating(RenderWindow window)
         {
             var spatialIndex = new STRtree<Cell>();
-            foreach (var cell in Objects.GetMoveblaObjects().OfType<Cell>())
+            foreach (var cell in Objects.GetDrawableObjects().OfType<Cell>())
             {
                 Envelope env = new Envelope(cell.X - cell.Radius,
                                             cell.X + cell.Radius,
@@ -146,7 +146,7 @@ namespace Agario
 
             spatialIndex.Build();
 
-            foreach (var cell in Objects.GetCells().OfType<IMulticellular>())
+            foreach (var cell in Objects.GetCells().OfType<ICellManager<Cell>>())
             {
                 foreach (var cl in cell.Cells)
                 {
@@ -162,7 +162,7 @@ namespace Agario
                         if (cellFood is Food food)
                         {
                             EatFood(cl, food, window);
-
+  
                         }
                     }
                 }

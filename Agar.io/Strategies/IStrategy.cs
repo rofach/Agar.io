@@ -1,13 +1,15 @@
-﻿using System;
+﻿using Agario.Cells;
+using SFML.System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Agario.Interfaces
+namespace Agario.Strategies
 {
     public interface IStrategy
     {
-        void ExecuteStrategy();
+        Vector2f FindNewTargetPoint(Bot bot);
     }
 }

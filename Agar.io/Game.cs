@@ -16,8 +16,8 @@ namespace Agario
         private Player _player;
         public Game(int foodCount = 0, int botsCount = 0)
         {
-            sizeX = 3000;
-            sizeY = 3000;
+            sizeX = 5000;
+            sizeY = 5000;
             for (int i = 0; i < foodCount; i++)
             {
                 Objects.Add(new Food(50));
@@ -27,7 +27,7 @@ namespace Agario
             Objects.Add(_player);
             for(int i = 0; i < botsCount; i++)
             {
-                Objects.Add(new BotTeleport());
+                Objects.Add(new BotTeleport(i));
             }
 
             for (int i = 0; i < 100; i++)
@@ -127,24 +127,11 @@ namespace Agario
                 {
                      splittableCell.VirusSplit(cell);
                 }
-                
-
-                
             }
         }
         private void CheckFoodEating(RenderWindow window)
         {
-            var spatialIndex = new STRtree<Cell>();
-            foreach (var cell in Objects.GetDrawableObjects().OfType<Cell>())
-            {
-                Envelope env = new Envelope(cell.X - cell.Radius,
-                                            cell.X + cell.Radius,
-                                            cell.Y - cell.Radius,
-                                            cell.Y + cell.Radius);
-                spatialIndex.Insert(env, cell);
-            }
-
-            spatialIndex.Build();
+            var foods = Objects.GetFoodTree();
 
             foreach (var cell in Objects.GetCells().OfType<ICellManager<Cell>>())
             {
@@ -155,7 +142,7 @@ namespace Agario
                         cl.X - searchRange, cl.X + searchRange,
                         cl.Y - searchRange, cl.Y + searchRange);
 
-                    var nearbyFoods = spatialIndex.Query(searchEnv);
+                    var nearbyFoods = foods.Query(searchEnv);
 
                     foreach (var cellFood in nearbyFoods)
                     {
@@ -172,13 +159,18 @@ namespace Agario
         {
             var allCells = Objects.GetMoveblaObjects().OfType<ICellManager<Cell>>()
                              .SelectMany(c => c.Cells).ToList();
-
+            var nearCell = Objects.GetCellsTree();
             for (int i = 0; i < allCells.Count; i++)
             {
-                for (int j = i + 1; j < allCells.Count; j++)
+                float searchRange = 50f + allCells[i].Radius;
+                var searchEnv = new Envelope(
+                    allCells[i].X - searchRange, allCells[i].X + searchRange,
+                    allCells[i].Y - searchRange, allCells[i].Y + searchRange);
+                var nearbyCells = nearCell.Query(searchEnv);
+                for (int j = 0; j < nearbyCells.Count; j++)
                 {
                     var eater = allCells[i];
-                    var victim = allCells[j];
+                    var victim = nearbyCells[j];
                     if(eater is IMergeable cell1 && victim is IMergeable cell2)
                     {
                         if(cell1.ID == cell2.ID) continue;
@@ -221,10 +213,6 @@ namespace Agario
                 food.ChangePos(sizeX, sizeY);
                 food.IsEaten = false;
             }
-        }
-        private float GetDistance(Cell obj1, Cell obj2)
-        {
-            return (float)Math.Sqrt(Math.Pow(obj1.X - obj2.X, 2) + Math.Pow(obj1.Y - obj2.Y, 2));
         }
         private bool IsInViewZone(Cell gameObj, View camera)
         {
@@ -280,6 +268,8 @@ namespace Agario
                     _camera = new View(visibleArea);
                 };
                 UpdateCameraSize(_camera, window);
+                //_camera.Size = new Vector2f(window.Size.X, window.Size.Y);
+                Objects.UpdateObjects();
                 _camera.Center = GetCenterCamera();              
                 window.SetView(_camera);
                 window.DispatchEvents();

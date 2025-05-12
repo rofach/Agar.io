@@ -51,6 +51,7 @@ namespace Agario.Cells
 
         public PlayerCell(float x = 0, float y = 0, float mass = 200, int id = 1) 
         {
+            ID = id;
             Position = new Vector2f(x, y);
             Mass = mass;
             //CirclePosition = new Vector2f(x + Radius, y + Radius);
@@ -76,16 +77,15 @@ namespace Agario.Cells
         {
             return _accelerationDistance <= Logic.GetDistanceBetweenPoints(new Vector2f(X, Y), _startAccelerationPoint);
         }
-        public void Move(RenderWindow window)
+        public void Move(RenderWindow window, Vector2f targetPoint)
         {
             UpdateSpeed();
-            var mousePos = window.MapPixelToCoords(Mouse.GetPosition(window));
             if (_acceleration)
             {
-                mousePos = _accelerationDirection;
+                targetPoint = _accelerationDirection;
             }
-            float dX = mousePos.X - X;
-            float dY = mousePos.Y - Y;
+            float dX = targetPoint.X - X;
+            float dY = targetPoint.Y - Y;
             float distance = (float)Math.Sqrt(Math.Pow(dX, 2) + Math.Pow(dY, 2));
             float distanceSpeed = 1;
             float elapsedTime = Timer.GameTime - DivisionTime;

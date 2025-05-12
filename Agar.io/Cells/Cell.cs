@@ -4,7 +4,7 @@ using SFML.System;
 
 namespace Agario.Cells
 {
-    abstract public class Cell : IDrawable
+    abstract public class Cell : IDrawable, IComparable
     {
 
         private float _x, _y, _mass, _radius;
@@ -63,6 +63,20 @@ namespace Agario.Cells
         {
             return MathF.Sqrt(mass);
         }
+
+        public int CompareTo(object? obj)
+        {
+            if(obj == null) return 0;
+            if(obj == this) return 1;
+            var cell = obj as Cell;
+            /*if(this > cell) return -1;
+            else if(this < cell) return 1;
+            else return 0;*/
+            if (this.Radius > cell.Radius) return 1;
+            else if (this.Radius < cell.Radius) return -1;
+            else return 0;
+        }
+
         public static bool operator <(Cell that, Cell other)
         {
             return (that.Radius * 1.2 < other.Radius);

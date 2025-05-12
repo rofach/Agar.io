@@ -4,7 +4,7 @@ using SFML.System;
 
 namespace Agario.Cells
 {
-    sealed class Food : Cell, IDrawable
+    sealed class Food : Cell, IDrawable, IMovable
     {
         private Random _rand = new Random();
         private Cell? _target;

@@ -75,8 +75,9 @@ namespace Agario
             }
         }
 
-        public static void Divide(ICellManager<Cell> cellManager, List<Cell> cells, int maxDivideCount, ref float lastDivideTime, float minMass)
+        public static void Divide(ICellManager<Cell> cellManager, int maxDivideCount, ref float lastDivideTime, float minMass)
         {
+            var cells = cellManager.Cells;
             cells.Sort((a, b) => b.Mass.CompareTo(a.Mass));
             int currentDivideCount = cells.Count;
             foreach (var cell in cells.OfType<IMergeable>().ToList())

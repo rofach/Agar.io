@@ -15,10 +15,11 @@ namespace Agario.Cells
         private float _lastDivideTime = 0;
         private List<Cell> _cells = new List<Cell>();
         private List<Cell> _freeCells = new List<Cell>();
-        private int id = 1;
-        public Player()
+        private int _id = 1000;
+        public Player(int id = 1000)
         {
-            _cells.Add(new PlayerCell(mass: 200, id: 1));
+            _id = id;
+            _cells.Add(new PlayerCell(mass: 200, id: id));
             _cellsCount = _cells.Count;
             for (int i = 0; i < 16; i++)
             {
@@ -33,6 +34,12 @@ namespace Agario.Cells
         {
             get { return _freeCells; }
         }
+
+        public int ID { get => _id; set => throw new NotImplementedException(); }
+        /*public int MaxDivideCount { get => _maxCellsCount; set => throw new NotImplementedException(); }
+        public float LastDivideTime { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public float MinMass { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }*/
+
         public void VirusSplit(Cell cell)
         {
             int splitCount = Math.Min(8, _maxCellsCount - _cells.Count);
@@ -57,7 +64,6 @@ namespace Agario.Cells
                 cellToAdd.Mass = fragmentMass;
                 cellToAdd.DivisionTime = Timer.GameTime;
                 _cells.Add(cellToAdd);
-
             }
             
         }
@@ -68,13 +74,14 @@ namespace Agario.Cells
             if (Keyboard.IsKeyPressed(Keyboard.Key.Space) && Timer.GameTime - _lastDivideTime > 0.3)
             {
                 _lastDivideTime = Timer.DeltaTime;
-                Logic.Divide(this, _cells, _maxCellsCount, ref _lastDivideTime, _minMass);
+                Logic.Divide(this, _maxCellsCount, ref _lastDivideTime, _minMass);
             }
             Logic.Merge(_cells);
+            var targetPoint = window.MapPixelToCoords(Mouse.GetPosition(window));
             foreach (var cell in _cells)
             {
-                if (cell is IMovable playerCell)
-                    playerCell.Move(window);
+                if (cell is PlayerCell playerCell)
+                    playerCell.Move(window, targetPoint);
             }
             Logic.HandleCollisions(_cells);
         }

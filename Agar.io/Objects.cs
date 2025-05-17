@@ -15,7 +15,7 @@ namespace Agario
     static class Objects
     {
         private static List<IDrawable> _drawableObjects = new();
-        private static List<IMovable> _movableObjects = new();
+        private static List<IUpdatable> _movableObjects = new();
         private static List<ICellManager<Cell>> _cellManagers = new();
         private static STRtree<Cell> _cellsTree = new();
         private static STRtree<Cell> _foodTree = new();
@@ -23,9 +23,9 @@ namespace Agario
         public static void Add<T>(T obj)
         {
             if (obj == null) throw new ArgumentNullException(nameof(obj));
-            if (obj is IMovable)
+            if (obj is IUpdatable)
             {
-                _movableObjects.Add(obj as IMovable);
+                _movableObjects.Add(obj as IUpdatable);
                 if(obj is ICellManager<Cell> cell)
                     _cellManagers.Add(cell);
             }
@@ -38,17 +38,17 @@ namespace Agario
         public static void MoveObj(RenderWindow window)
         {
 
-            foreach (IMovable obj in _movableObjects)
+            foreach (IUpdatable obj in _movableObjects)
             {
-                obj.Move(window);
+                obj.Update(window);
             }
         }
         public static void Remove<T>(T obj)
         {
             if (obj == null) throw new ArgumentNullException(nameof(obj));
-            if (obj is IMovable)
+            if (obj is IUpdatable)
             {
-                _movableObjects.Remove(obj as IMovable);
+                _movableObjects.Remove(obj as IUpdatable);
                 if (obj is ICellManager<Cell> cell)
                     _cellManagers.Remove(cell);
             }
@@ -102,8 +102,8 @@ namespace Agario
 
         public static Texture texture = new Texture("textures/text1.png");
         public static IEnumerable<IDrawable> GetDrawableObjects() => _drawableObjects;
-        public static IEnumerable<IMovable> GetMoveblaObjects() => _movableObjects;
-        public static IEnumerable<ICellManager<Cell>> GetCells() => _cellManagers;
+        public static IEnumerable<IUpdatable> GetMoveblaObjects() => _movableObjects;
+        public static IEnumerable<ICellManager<Cell>> GetCellsManagers() => _cellManagers;
         public static STRtree<Cell> GetCellsTree() => _cellsTree;
         public static STRtree<Cell> GetFoodTree() => _foodTree;
 

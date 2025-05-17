@@ -1,18 +1,21 @@
 ﻿using Agario.Cells;
+using Agario.Cells.Bots;
 using NetTopologySuite.Geometries;
 using SFML.System;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace Agario.Strategies
 {
-    public class AggressiveBehavior : IStrategy
+    public class AggressiveBehavior : IBehavior
     {
         private bool foundTarget = false;
         Cell? _enemy;
+        private Vector2f Normalize(Vector2f v)
+        {
+            float mag = MathF.Sqrt(v.X * v.X + v.Y * v.Y);
+            if (mag < 0.0001f) return new Vector2f(0, 0);
+            return new Vector2f(v.X / mag, v.Y / mag);
+        }
         public Vector2f FindNewTargetPoint(Bot bot)
         {
             Vector2f target = bot.TargetPoint;
@@ -37,22 +40,29 @@ namespace Agario.Strategies
                 foreach(var enemy in nearby)
                 {
                     if (enemy.ID == myCell.ID) continue;
-                    if(myCell > enemy)
+                    if(myCell.Mass > enemy.Mass * 1.2)
                     {
                         foundTarget = true;
                         target = enemy.Position;
-                        this._enemy = enemy;
+                        _enemy = enemy;
+                    }
+                    foreach (var cell in bot.Cells)
+                    {
+                        if (Logic.GetDistanceBetweenCells(enemy, cell) < cell.Radius + enemy.Radius && enemy.Mass > cell.Mass * 1.2)
+                        {
+                            bot.SuperPower();
+                            break;
+                        }
                     }
                 }
             }
             if(foundTarget)
             {
-                
                 if(Logic.GetDistanceBetweenPoints(FindAveragePosition(cells), target) < maxRadius * 3
                     && cells.First().Radius > _enemy?.Radius * 2)
                 {
                     float time = bot.LastDivideTime;
-                    Logic.Divide(bot, 2, ref time, 200);
+                    Logic.Divide(bot, maxDivideCount: 2, ref time, 200);
                     bot.LastDivideTime = time;
                 }
             }
@@ -76,11 +86,7 @@ namespace Agario.Strategies
 
         private bool GetPoint(Vector2f avgPos, Vector2f target)
         {
-            if (Logic.GetDistanceBetweenPoints(target, avgPos) < 10)
-            {
-                return true;
-            }
-            return false;
+            return Logic.GetDistanceBetweenPoints(target, avgPos) < 10;
         }
     }
 }

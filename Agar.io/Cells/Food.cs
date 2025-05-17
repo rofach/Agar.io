@@ -4,7 +4,7 @@ using SFML.System;
 
 namespace Agario.Cells
 {
-    sealed class Food : Cell, IDrawable, IMovable
+    sealed class Food : Cell, IDrawable, IUpdatable
     {
         private Random _rand = new Random();
         private Cell? _target;
@@ -31,7 +31,7 @@ namespace Agario.Cells
         {
             Position = new Vector2f(_rand.Next(-sizeX, sizeX), _rand.Next(-sizeY, sizeY));
         }
-        public void Move(RenderWindow window)
+        public void Update(RenderWindow window)
         {
             if (IsEaten)
             {

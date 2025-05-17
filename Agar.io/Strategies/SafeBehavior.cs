@@ -1,18 +1,12 @@
 ﻿using Agario.Cells;
+using Agario.Cells.Bots;
 using NetTopologySuite.Geometries;
-using NetTopologySuite.Index.Strtree;
 using SFML.System;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.Contracts;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace Agario.Strategies
 {
-    public class SafeBehavior : IStrategy
+    public class SafeBehavior : IBehavior
     {
         private const float BaseWeight = 1f;
         private const float AvoidWeight = 2f;
@@ -47,11 +41,20 @@ namespace Agario.Strategies
                     if (enemy.ID == myCell.ID) continue;
                     float angle = AngleBetween(myCell.Position - enemy.Position, enemy.Direction);
                     var minCell = cells.Min();
-                    if (angle < DangerAngleThreshold && enemy > minCell)
+                    if (angle < DangerAngleThreshold && enemy.Mass > minCell.Mass * 1.2)
                     {
                         Vector2f away = Normalize(center - enemy.Position);
                         direction += away * AvoidWeight;
+                        foreach (var cell in bot.Cells)
+                        {
+                            if (Logic.GetDistanceBetweenCells(enemy, cell) < cell.Radius + enemy.Radius)
+                            {
+                                bot.SuperPower();
+                                break;
+                            }
+                        }
                     }
+
                 }
             }
             if (oldDirection.Equals(direction))

@@ -13,15 +13,16 @@ namespace Agario.Cells
         private float _accelerationDistance;
         private float _speed;
         private bool _acceleration = false;
-        private int _accelerationTime;
+        private float _divisionTime;
+        private float _accelerationTime;
         private Texture _texture = new Texture("textures/test2.jpg");
         public Vector2f AccelerationDirection
         {
             get { return _accelerationDirection; }
             set { _accelerationDirection = value; }
         }
-        public float DivisionTime { get; set; }
-
+        public float DivisionTime { get => _divisionTime; set { _divisionTime = value; _accelerationTime = value; } }
+        public float AccelerationTime {  get => _accelerationTime; set => _accelerationTime = value; }
         public Vector2f Direction
         {
             get { return _direction; }
@@ -46,7 +47,6 @@ namespace Agario.Cells
             get { return _startAccelerationPoint; }
             set { _startAccelerationPoint = value; }
         }
-
         public int ID { get; set; }
 
         public PlayerCell(float x = 0, float y = 0, float mass = 200, int id = 1) 
@@ -54,9 +54,7 @@ namespace Agario.Cells
             ID = id;
             Position = new Vector2f(x, y);
             Mass = mass;
-            //CirclePosition = new Vector2f(x + Radius, y + Radius);
             Circle.FillColor = Color.White;
-            //Circle.Position = CirclePosition;
             Circle.OutlineColor = new Color(100, 0, 0);
             Circle.OutlineThickness = 4;
             Circle.Texture = _texture;
@@ -88,7 +86,7 @@ namespace Agario.Cells
             float dY = targetPoint.Y - Y;
             float distance = (float)Math.Sqrt(Math.Pow(dX, 2) + Math.Pow(dY, 2));
             float distanceSpeed = 1;
-            float elapsedTime = Timer.GameTime - DivisionTime;
+            float elapsedTime = Timer.GameTime - AccelerationTime;
             _acceleration = _acceleration && (!ReachedDistance() && elapsedTime < 2);
             float accelerateSpeed = 1.0f;
             if (_acceleration)

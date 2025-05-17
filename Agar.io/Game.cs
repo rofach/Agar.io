@@ -43,12 +43,9 @@ namespace Agario
             CheckVirusEating();
             CheckFoodEating(window);
             CheckCellEating();
+            DrawGrid(window);
             DrawObjects(window);
             MoveCells(window);
-
-            //Thread thr = new Thread(CheckVirusEating);
-            //thr.Start();
-
         }
         private void DrawObjects(RenderWindow window)
         {
@@ -79,6 +76,32 @@ namespace Agario
             {
                 cell.Draw(window);
             }
+        }
+        private void DrawGrid(RenderWindow window)
+        {
+            float thickness = 0.5f;
+            float spacing = 100f;
+            var color = new Color(0, 0, 0, 50);
+
+            var grid = new VertexArray(PrimitiveType.Quads);
+
+            for (float x = -sizeX; x <= sizeX; x += spacing)
+            {
+                grid.Append(new Vertex(new Vector2f(x - thickness, -sizeY), color));
+                grid.Append(new Vertex(new Vector2f(x + thickness, -sizeY), color));
+                grid.Append(new Vertex(new Vector2f(x + thickness, +sizeY), color));
+                grid.Append(new Vertex(new Vector2f(x - thickness, +sizeY), color));
+            }
+
+            for (float y = -sizeY; y <= sizeY; y += spacing)
+            {
+                grid.Append(new Vertex(new Vector2f(-sizeX, y - thickness), color));
+                grid.Append(new Vertex(new Vector2f(+sizeX, y - thickness), color));
+                grid.Append(new Vertex(new Vector2f(+sizeX, y + thickness), color));
+                grid.Append(new Vertex(new Vector2f(-sizeX, y + thickness), color));
+            }
+
+            window.Draw(grid);
         }
         private void MoveCells(RenderWindow window)
         {
@@ -289,7 +312,7 @@ namespace Agario
                 
             }
         }
-       
-    
+        
+           
     }
 }

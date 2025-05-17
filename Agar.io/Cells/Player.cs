@@ -6,20 +6,24 @@ using NetTopologySuite.Utilities;
 
 namespace Agario.Cells
 {
-    sealed public class Player : IMovable, IDrawable, IVirusSplittable, ICellManager<Cell>
+    sealed public class Player : IUpdatable, IDrawable, IVirusSplittable, ICellManager<Cell>
     {       
         private Texture _texture = new Texture("textures/test2.jpg");
-        private int _maxCellsCount = 16;
-        private int _cellsCount;
-        private float _minMass = 200;
-        private float _lastDivideTime = 0;
-        private List<Cell> _cells = new List<Cell>();
-        private List<Cell> _freeCells = new List<Cell>();
-        private int id = 1;
-        public Player()
+        private int _maxCellsCount;
+        private float _minMass;
+        private float _lastDivideTime;
+        private List<Cell> _cells;
+        private List<Cell> _freeCells;
+        private int _id;
+        public Player(int id = 1000)
         {
-            _cells.Add(new PlayerCell(mass: 200, id: 1));
-            _cellsCount = _cells.Count;
+            _id = id;
+            _maxCellsCount = 16;
+            _minMass = 200;
+            _lastDivideTime = 0;
+            _freeCells = new List<Cell>();
+            _cells = new List<Cell>();
+            _cells.Add(new PlayerCell(mass: 600, id: id));
             for (int i = 0; i < 16; i++)
             {
                 _freeCells.Add(new PlayerCell(x: 0, y: 0, mass: 0, id));
@@ -33,6 +37,8 @@ namespace Agario.Cells
         {
             get { return _freeCells; }
         }
+        public int ID { get => _id; set => _id = value; }
+
         public void VirusSplit(Cell cell)
         {
             int splitCount = Math.Min(8, _maxCellsCount - _cells.Count);
@@ -49,7 +55,7 @@ namespace Agario.Cells
                 float angle = i * angleStep;
                 Vector2f dir = new Vector2f(cell.X + 1000 * MathF.Cos(angle), cell.Y + 1000 * MathF.Sin(angle));
                 var cellToAdd = newCells[i];
-                cellToAdd.Position = new Vector2f(cell.X + 10 * MathF.Cos(angle), cell.Y + 10 * MathF.Sin(angle));
+                cellToAdd.Position = new Vector2f(cell.X + cell.Radius * MathF.Cos(angle), cell.Y + cell.Radius * MathF.Sin(angle));
                 cellToAdd.Acceleration = true;
                 cellToAdd.AccelerationDirection = dir;
                 cellToAdd.AccelerationDistance = cell.Radius * 10;
@@ -57,24 +63,22 @@ namespace Agario.Cells
                 cellToAdd.Mass = fragmentMass;
                 cellToAdd.DivisionTime = Timer.GameTime;
                 _cells.Add(cellToAdd);
-
             }
             
         }
-
-        
-        public void Move(RenderWindow window)
+        public void Update(RenderWindow window)
         {
             if (Keyboard.IsKeyPressed(Keyboard.Key.Space) && Timer.GameTime - _lastDivideTime > 0.3)
             {
                 _lastDivideTime = Timer.DeltaTime;
-                Logic.Divide(this, _cells, _maxCellsCount, ref _lastDivideTime, _minMass);
+                Logic.Divide(this, _maxCellsCount, ref _lastDivideTime, _minMass);
             }
             Logic.Merge(_cells);
+            var targetPoint = window.MapPixelToCoords(Mouse.GetPosition(window));
             foreach (var cell in _cells)
             {
-                if (cell is IMovable playerCell)
-                    playerCell.Move(window);
+                if (cell is PlayerCell playerCell)
+                    playerCell.Move(window, targetPoint);
             }
             Logic.HandleCollisions(_cells);
         }

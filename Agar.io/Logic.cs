@@ -4,7 +4,7 @@ using SFML.System;
 
 namespace Agario
 {
-    public class Logic
+    public static class Logic
     {
         public static float GetDistanceBetweenPoints(Vector2f point1, Vector2f point2)
         {
@@ -16,7 +16,7 @@ namespace Agario
         }
         public static bool CanEat(Cell thisCell, Cell otherCell)
         {
-            return CanMerge(thisCell, otherCell) && thisCell > otherCell;
+            return CanMerge(thisCell, otherCell) && thisCell.Mass > otherCell.Mass * 1.2;
         }
         public static bool CanMerge(Cell thisCell, Cell otherCell)
         {
@@ -65,7 +65,7 @@ namespace Agario
             {
                 if (cells[i] is Cell cell)
                 {
-                    cell.Position += correctionVectors[i] * 0.5f;
+                    cell.Position += correctionVectors[i] * 0.6f;
 
                     cell.Position = new Vector2f(
                         Math.Clamp(cell.Position.X, -Game.sizeX, Game.sizeX),
@@ -75,8 +75,9 @@ namespace Agario
             }
         }
 
-        public static void Divide(ICellManager<Cell> cellManager, List<Cell> cells, int maxDivideCount, ref float lastDivideTime, float minMass)
+        public static void Divide(ICellManager<Cell> cellManager, int maxDivideCount, ref float lastDivideTime, float minMass)
         {
+            var cells = cellManager.Cells;
             cells.Sort((a, b) => b.Mass.CompareTo(a.Mass));
             int currentDivideCount = cells.Count;
             foreach (var cell in cells.OfType<IMergeable>().ToList())

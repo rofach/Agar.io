@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Agario.Interfaces
 {
-    public interface IMergeable : IMovable
+    public interface IMergeable
     {
         int ID { get; set; }
         float Mass { get; set; }

@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 
 namespace Agario.Interfaces
 {
-    public interface IMovable
+    public interface IUpdatable
     {
-        public void Move(RenderWindow window);
+        public void Update(RenderWindow window);
     }
 }

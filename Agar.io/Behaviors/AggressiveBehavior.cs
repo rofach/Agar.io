@@ -1,5 +1,6 @@
 ﻿using Agario.Cells;
 using Agario.Cells.Bots;
+using Agario.GameLogic;
 using NetTopologySuite.Geometries;
 using SFML.System;
 
@@ -48,7 +49,7 @@ namespace Agario.Strategies
                     }
                     foreach (var cell in bot.Cells)
                     {
-                        if (Logic.GetDistanceBetweenCells(enemy, cell) < cell.Radius + enemy.Radius && enemy.Mass > cell.Mass * 1.2)
+                        if (Logic.GetDistanceBetweenCells(enemy, cell) < cell.Radius + enemy.Radius && enemy.IsBiggerThan(cell))
                         {
                             bot.SuperPower();
                             break;
@@ -59,7 +60,7 @@ namespace Agario.Strategies
             if(foundTarget)
             {
                 if(Logic.GetDistanceBetweenPoints(FindAveragePosition(cells), target) < maxRadius * 3
-                    && cells.First().Radius > _enemy?.Radius * 2)
+                    && cells.First().Mass > _enemy?.Mass*2.5)
                 {
                     float time = bot.LastDivideTime;
                     Logic.Divide(bot, maxDivideCount: 2, ref time, 200);
@@ -69,7 +70,7 @@ namespace Agario.Strategies
             if(GetPoint(FindAveragePosition(cells), target))
             {
                 foundTarget = false;
-                target = new Vector2f(Objects.Random.Next(-Game.sizeX, Game.sizeX), Objects.Random.Next(-Game.sizeY, Game.sizeY));
+                target = new Vector2f(Game.Random.Next(-Game.MapSizeX, Game.MapSizeX), Game.Random.Next(-Game.MapSizeY, Game.MapSizeY));
             }
             return target;
         }

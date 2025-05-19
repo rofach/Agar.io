@@ -1,8 +1,9 @@
-﻿using Agario.Interfaces;
+﻿using Agario.GameLogic;
 using Agario.Strategies;
 using NetTopologySuite.Geometries;
 using SFML.Graphics;
 using SFML.System;
+using Timer = Agario.GameLogic.Timer;
 
 namespace Agario.Cells.Bots
 {
@@ -11,17 +12,17 @@ namespace Agario.Cells.Bots
         private float lastSuperPowerUsingTime;
         public TeleportBot(int id) : base(id)
         {            
-            Behavior = new SafeBehavior();
+            Behavior = new AggressiveBehavior();
         }
         public override void SuperPower()
         {
-            if (Timer.GameTime - lastSuperPowerUsingTime < 10)
+            if (Timer.GameTime - lastSuperPowerUsingTime < 120)
                 return;
-            int num = Objects.Random.Next(-1, 2);
+            int num = Game.Random.Next(-1, 2);
             if (num == 1) return;
 
-            float x = Objects.Random.Next(-Game.sizeX, Game.sizeX);
-            float y = Objects.Random.Next(-Game.sizeY, Game.sizeY);
+            float x = Game.Random.Next(-Game.MapSizeX, Game.MapSizeX);
+            float y = Game.Random.Next(-Game.MapSizeY, Game.MapSizeY);
             var cells = Objects.GetCellsTree();
             float searchRange = Cells.Max(c => c.Radius) * 2;
             var env = new Envelope(x - searchRange, x + searchRange, y - searchRange, y + searchRange);
@@ -40,8 +41,8 @@ namespace Agario.Cells.Bots
                     minCellsCount = currentCount;
                     newPos = new Vector2f(x, y);
                 }
-                x = Objects.Random.Next(-Game.sizeX, Game.sizeX);
-                y = Objects.Random.Next(-Game.sizeY, Game.sizeY);
+                x = Game.Random.Next(-Game.MapSizeX, Game.MapSizeX);
+                y = Game.Random.Next(-Game.MapSizeY, Game.MapSizeY);
                 env = new Envelope(x - searchRange, x + searchRange, y - searchRange, y + searchRange);
                 currentCount = cells.Query(env).Count();
             }

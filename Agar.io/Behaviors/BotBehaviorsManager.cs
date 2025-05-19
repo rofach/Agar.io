@@ -1,4 +1,5 @@
 ﻿using Agario.Cells.Bots;
+using Agario.GameLogic;
 
 namespace Agario.Strategies
 {

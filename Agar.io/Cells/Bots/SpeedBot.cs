@@ -1,4 +1,5 @@
-﻿using Agario.Strategies;
+﻿using Agario.GameLogic;
+using Agario.Strategies;
 using NetTopologySuite.Geometries;
 using SFML.Graphics;
 using SFML.System;
@@ -7,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Timer = Agario.GameLogic.Timer;
 
 namespace Agario.Cells.Bots
 {
@@ -15,7 +17,7 @@ namespace Agario.Cells.Bots
         private float lastSuperPowerUsingTime;
         public SpeedBot(int id) : base(id)
         {
-            Behavior = new SafeBehavior();
+            Behavior = new AggressiveBehavior();
         }
         public override void SuperPower()
         {

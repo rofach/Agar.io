@@ -1,7 +1,7 @@
 ﻿using SFML.System;
 
 
-namespace Agario
+namespace Agario.GameLogic
 {
     public static class Timer
     {
@@ -14,6 +14,6 @@ namespace Agario
             DeltaTime = delta.Restart().AsSeconds();
         }
 
-        
+
     }
 }

@@ -1,5 +1,4 @@
-﻿using Agario.Cells;
-using SFML.System;
+﻿using SFML.System;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +6,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Agario.Interfaces
+namespace Agario.Cells
 {
     public interface IMergeable
     {

@@ -1,5 +1,4 @@
 ﻿using Agario.Cells;
-using Agario.Interfaces;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
@@ -7,29 +6,30 @@ using NetTopologySuite.Geometries;
 using NetTopologySuite.Index.Strtree;
 using Agario.Strategies;
 using Agario.Cells.Bots;
-//using System.Drawing;
+using Agario.GameLogic;
 
-namespace Agario
+namespace Agario.GameLogic
 {
     sealed public class Game
     {
-        private View _camera;
-        public static int sizeX, sizeY;
-        //private float _prevPlayerMass;
-        private Player _player;
-        private BotBehaviorsManager _botStrategiesManager;
+        public static int MapSizeX = 4000, MapSizeY = 4000;
+        private float _lastMassUpdate;
+        private View? _camera;
+        private Player? _player;
+        private BotBehaviorsManager? _botStrategiesManager;
+        private VertexArray? _grid;
+        static public readonly Random Random = new Random();
         public Game(int foodCount = 0, int botsCount = 0, int virusCount = 0)
         {
-            sizeX = 4000;
-            sizeY = 4000;
+            _lastMassUpdate = 0;
             for (int i = 0; i < foodCount; i++)
             {
                 Objects.Add(new Food(50));
 
             }
-            _player = new Player();
+            _player = new Player(1000);
             Objects.Add(_player);
-            for(int i = 0; i < botsCount; i++)
+            for (int i = 0; i < botsCount; i++)
             {
                 if (i % 3 == 0)
                     Objects.Add(new TeleportBot(i));
@@ -42,47 +42,38 @@ namespace Agario
             }
             for (int i = 0; i < virusCount; i++)
             {
-                Objects.Add(new Virus());
+                Objects.Add(new Virus(1000));
             }
 
             _botStrategiesManager = new BotBehaviorsManager();
-        }
+            CreateGrid();
 
+        }
+        private void Draw(RenderWindow window)
+        {
+            DrawGrid(window);
+            DrawObjects(window);
+        }
         private void Update(RenderWindow window)
         {
             Timer.Update();
-            //_prevPlayerMass = _player.GetTotalMass();
-            _botStrategiesManager.UpdateBehavior();
+            _botStrategiesManager!.UpdateBehavior();
             CheckVirusEating();
             CheckFoodEating(window);
             CheckCellEating();
-            DrawGrid(window);
-            DrawObjects(window);
-            MoveCells(window);
+            UpdateCells(window);
         }
         private void DrawObjects(RenderWindow window)
         {
             List<Cell> cellsToDraw = new List<Cell>();
             foreach (var obj in Objects.GetDrawableObjects())
             {
-                if (obj is Food food)
+                if (obj is Cell cell)
                 {
-                    if (IsCellInViewZone(food, _camera))
-                        food.Draw(window);
+                    if (IsInViewZone(obj, _camera))
+                        cellsToDraw.Add(cell);
                 }
-                else if (obj is ICellManager<Cell> cellManager)
-                {
-                    foreach (var cell in cellManager.Cells)
-                    {
-                        if (IsCellInViewZone(cell, _camera))
-                            cellsToDraw.Add(cell);
-                    }
-                }
-                else if (obj is Virus virus)
-                {
-                    if (IsCellInViewZone(virus, _camera))
-                        virus.Draw(window);
-                }
+                else obj.Draw(window);
             }
             cellsToDraw.Sort((a, b) => a.Radius.CompareTo(b.Radius));
             foreach (var cell in cellsToDraw)
@@ -92,36 +83,54 @@ namespace Agario
         }
         private void DrawGrid(RenderWindow window)
         {
+            window.Draw(_grid);
+        }
+        private void CreateGrid()
+        {
             float thickness = 0.5f;
-            float spacing = 100f;
+            float spacing = 30f;
             var color = new Color(0, 0, 0, 50);
 
-            var grid = new VertexArray(PrimitiveType.Quads);
+            _grid = new VertexArray(PrimitiveType.Quads);
 
-            for (float x = -sizeX; x <= sizeX; x += spacing)
+            for (float x = -MapSizeX; x <= MapSizeX; x += spacing)
             {
-                grid.Append(new Vertex(new Vector2f(x - thickness, -sizeY), color));
-                grid.Append(new Vertex(new Vector2f(x + thickness, -sizeY), color));
-                grid.Append(new Vertex(new Vector2f(x + thickness, +sizeY), color));
-                grid.Append(new Vertex(new Vector2f(x - thickness, +sizeY), color));
+                _grid.Append(new Vertex(new Vector2f(x - thickness, -MapSizeY), color));
+                _grid.Append(new Vertex(new Vector2f(x + thickness, -MapSizeY), color));
+                _grid.Append(new Vertex(new Vector2f(x + thickness, +MapSizeY), color));
+                _grid.Append(new Vertex(new Vector2f(x - thickness, +MapSizeY), color));
             }
 
-            for (float y = -sizeY; y <= sizeY; y += spacing)
+            for (float y = -MapSizeY; y <= MapSizeY; y += spacing)
             {
-                grid.Append(new Vertex(new Vector2f(-sizeX, y - thickness), color));
-                grid.Append(new Vertex(new Vector2f(+sizeX, y - thickness), color));
-                grid.Append(new Vertex(new Vector2f(+sizeX, y + thickness), color));
-                grid.Append(new Vertex(new Vector2f(-sizeX, y + thickness), color));
+                _grid.Append(new Vertex(new Vector2f(-MapSizeX, y - thickness), color));
+                _grid.Append(new Vertex(new Vector2f(+MapSizeX, y - thickness), color));
+                _grid.Append(new Vertex(new Vector2f(+MapSizeX, y + thickness), color));
+                _grid.Append(new Vertex(new Vector2f(-MapSizeX, y + thickness), color));
             }
-
-            window.Draw(grid);
         }
-        private void MoveCells(RenderWindow window)
+        private void UpdateCells(RenderWindow window)
         {
-            foreach(var cell in Objects.GetMoveblaObjects())
+            foreach (var cell in Objects.GetMoveblaObjects())
             {
                 cell.Update(window);
             }
+            UpdateCellsMass();
+        }
+        private void UpdateCellsMass()
+        {
+            bool upd = false;
+            foreach (var obj in Objects.GetDrawableObjects())
+            {
+                if (obj is not PlayerCell cell) continue;
+                if (cell.Mass >= 200 && Timer.GameTime - _lastMassUpdate > 0.2)
+                {
+                    cell.Mass *= 0.999f;
+                    upd = true;
+                }
+            }
+            if(upd == true) _lastMassUpdate = Timer.GameTime;
+
         }
         private void CheckVirusEating()
         {
@@ -146,22 +155,22 @@ namespace Agario
                         cell.Y - searchRange, cell.Y + searchRange);
 
                     var nearbyViruses = spatialIndex.Query(searchEnv);
-                    
+
                     foreach (var virus in nearbyViruses)
                     {
-                        if(Logic.CanEat(cell, virus))
+                        if (Logic.CanEat(cell, virus))
                         {
                             cell.Mass += virus.Mass;
                             cells.Add(cell);
                             Objects.Remove(virus);
                         }
                     }
-                    
+
                 }
 
                 foreach (var cell in cells)
                 {
-                     splittableCell.VirusSplit(cell);
+                    splittableCell.VirusSplit(cell);
                 }
             }
         }
@@ -206,9 +215,9 @@ namespace Agario
                 {
                     var eater = allCells[i];
                     var victim = nearbyCells[j];
-                    if(eater is IMergeable cell1 && victim is IMergeable cell2)
+                    if (eater is IMergeable cell1 && victim is IMergeable cell2)
                     {
-                        if(cell1.ID == cell2.ID) continue;
+                        if (cell1.ID == cell2.ID) continue;
                     }
                     if (Logic.CanEat(eater, victim))
                     {
@@ -245,14 +254,14 @@ namespace Agario
             {
                 float prevRadius = cell.Radius;
                 cell.Mass += food.Mass;
-                food.ChangePos(sizeX, sizeY);
+                food.ChangePos(MapSizeX, MapSizeY);
                 food.IsEaten = false;
             }
         }
-        private bool IsCellInViewZone(Cell cell, View camera)
+        private bool IsInViewZone(IDrawable obj, View camera)
         {
-            return Math.Abs(camera.Center.X - cell.X) < camera.Size.X / 2 + cell.Radius * 4 &&
-                   Math.Abs(camera.Center.Y - cell.Y) < camera.Size.Y / 2 + cell.Radius * 4;
+            return Math.Abs(camera.Center.X - obj.X) < camera.Size.X / 2 + obj.Radius * 4 &&
+                   Math.Abs(camera.Center.Y - obj.Y) < camera.Size.Y / 2 + obj.Radius * 4;
         }
         private static void OnClose(object sender, EventArgs e)
         {
@@ -276,27 +285,26 @@ namespace Agario
             return center / count;
         }
         private void UpdateCameraSize(View camera, RenderWindow window)
-        {           
+        {
             if (_player == null || _player.Cells.Count == 0)
                 return;
             float massDifference = (_player.GetTotalMass() - 200) / 50;
             float aspectRatio = window.Size.X / (float)window.Size.Y;
             _camera.Size = new Vector2f((400 + massDifference) * aspectRatio, 400 + massDifference);
         }
-       
+
         public void Run()
         {
             var settings = new ContextSettings
             {
                 AntialiasingLevel = 5
-            };
 
+            };
             RenderWindow window = new RenderWindow(new VideoMode(800, 600), "Agario", Styles.Default, settings);
             //window.SetVerticalSyncEnabled(true);
             window.Closed += new EventHandler(OnClose);
             _camera = new View(new FloatRect(0, 0, 400, 300));
             window.SetView(_camera);
-            
             while (window.IsOpen)
             {
                 window.Resized += (sender, e) =>
@@ -304,17 +312,23 @@ namespace Agario
                     FloatRect visibleArea = new FloatRect(0, 0, e.Width / 2, e.Height / 2);
                     _camera = new View(visibleArea);
                 };
-                UpdateCameraSize(_camera, window);
+               
                 Objects.UpdateObjects();
-                _camera.Center = GetCenterCamera();              
+               
                 window.SetView(_camera);
                 window.DispatchEvents();
                 window.Clear(Color.White);
+                Draw(window);
                 Update(window);
+                _camera.Center = GetCenterCamera();
+                UpdateCameraSize(_camera, window);
                 window.Display();
             }
         }
-        
-           
+
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

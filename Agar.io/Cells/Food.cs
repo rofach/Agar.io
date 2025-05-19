@@ -1,6 +1,8 @@
-﻿using Agario.Interfaces;
+﻿using Agario.GameLogic;
+using Agario.GameLogic;
 using SFML.Graphics;
 using SFML.System;
+using Timer = Agario.GameLogic.Timer;
 
 namespace Agario.Cells
 {
@@ -16,16 +18,11 @@ namespace Agario.Cells
         public bool IsEaten { get; set; } = false;
         public Food(int mass = 30)
         {
-            ChangePos(Game.sizeX, Game.sizeY);
-            Mass = mass;
+            ChangePos(Game.MapSizeX, Game.MapSizeY);
+            Mass = Game.Random.Next(10, 50);
             Circle.FillColor = new Color((byte)_rand.Next(0, 255), (byte)_rand.Next(0, 255), (byte)_rand.Next(0, 255));
             Circle.SetPointCount(20);
             IsEaten = false;
-            //Circle.Texture = Objects.texture;
-        }
-        public override void Draw(RenderWindow window)
-        {
-            window.Draw(Circle);
         }
         public void ChangePos(int sizeX, int sizeY)
         {
@@ -47,9 +44,9 @@ namespace Agario.Cells
                 _rand = new Random();
                 float moveX = _rand.Next(-39, 40) * Timer.DeltaTime;
                 float moveY = _rand.Next(-39, 40) * Timer.DeltaTime;
-                if (Math.Abs(X + moveX) >= Game.sizeX)
+                if (Math.Abs(X + moveX) >= Game.MapSizeX)
                     moveX = 0;
-                if (Math.Abs(Y + moveY) >= Game.sizeY)
+                if (Math.Abs(Y + moveY) >= Game.MapSizeY)
                     moveY = 0;
                 Position += new Vector2f(moveX, moveY);
             }

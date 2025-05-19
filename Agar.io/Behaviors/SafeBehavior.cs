@@ -1,5 +1,6 @@
 ﻿using Agario.Cells;
 using Agario.Cells.Bots;
+using Agario.GameLogic;
 using NetTopologySuite.Geometries;
 using SFML.System;
 
@@ -47,7 +48,7 @@ namespace Agario.Strategies
                         direction += away * AvoidWeight;
                         foreach (var cell in bot.Cells)
                         {
-                            if (Logic.GetDistanceBetweenCells(enemy, cell) < cell.Radius + enemy.Radius)
+                            if (Logic.GetDistanceBetweenCells(enemy, cell) < cell.Radius + enemy.Radius && enemy.IsBiggerThan(cell))
                             {
                                 bot.SuperPower();
                                 break;
@@ -64,14 +65,14 @@ namespace Agario.Strategies
                 return currentTarget;
             }
 
-            if (center.X < -Game.sizeX + maxRadius)
+            if (center.X < -Game.MapSizeX + maxRadius)
                 direction += new Vector2f(1, 0) * BoundaryWeight;
-            else if (center.X > Game.sizeX - maxRadius)
+            else if (center.X > Game.MapSizeX - maxRadius)
                 direction += new Vector2f(-1, 0) * BoundaryWeight;
 
-            if (center.Y < -Game.sizeY + maxRadius)
+            if (center.Y < -Game.MapSizeY + maxRadius)
                 direction += new Vector2f(0, 1) * BoundaryWeight;
-            else if (center.Y > Game.sizeY - maxRadius)
+            else if (center.Y > Game.MapSizeY - maxRadius)
                 direction += new Vector2f(0, -1) * BoundaryWeight;
             Vector2f result = center + Normalize(direction) * cells.Min(c => c.Radius) * 5;
             return result;

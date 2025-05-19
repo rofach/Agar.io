@@ -1,4 +1,5 @@
-﻿using Agario.Strategies;
+﻿using Agario.GameLogic;
+using Agario.Strategies;
 using NetTopologySuite.Geometries;
 using SFML.Graphics;
 using SFML.System;
@@ -7,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Timer = Agario.GameLogic.Timer;
 
 namespace Agario.Cells.Bots
 {
@@ -17,7 +19,7 @@ namespace Agario.Cells.Bots
         private Cell? _cellUsedPower;
         public MassBot(int id) : base(id)
         {
-            Behavior = new SafeBehavior();
+            Behavior = new AggressiveBehavior();
         }
 
         public override void SuperPower()
@@ -25,7 +27,6 @@ namespace Agario.Cells.Bots
             if(Timer.GameTime - _lastSuperPowerUsingTime < 60 || _cellUsedPower != null)
                 return;
             var allCells = Objects.GetCellsTree();
-            //float tempMass = 0;
             foreach (var myCell in Cells)
             {
                 float range = myCell.Radius * 2;

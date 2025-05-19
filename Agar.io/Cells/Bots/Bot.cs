@@ -1,4 +1,5 @@
-﻿using Agario.Interfaces;
+﻿using Agario.GameLogic;
+using Agario.GameLogic;
 using Agario.Strategies;
 using SFML.Graphics;
 using SFML.System;
@@ -6,9 +7,10 @@ using System.Runtime.InteropServices.Marshalling;
 
 namespace Agario.Cells.Bots
 {
-    abstract public class Bot : IUpdatable, IDrawable, IVirusSplittable, ICellManager<Cell>
+    abstract public class Bot : IUpdatable, IVirusSplittable, ICellManager<Cell>
     {
         protected short _maxDivideCount;
+        protected short _maxCount;
         protected float _minMass;
         protected float _lastDivideTime;
         protected short _currentDivideCount;
@@ -22,17 +24,14 @@ namespace Agario.Cells.Bots
             ID = id;
             _cells = new List<Cell>();
             _freeCells = new List<Cell>();
-            _targetPoint = new Vector2f(Objects.Random.Next(-Game.sizeX, Game.sizeX), Objects.Random.Next(-Game.sizeY, Game.sizeY));
             _lastDivideTime = 0;
             _currentDivideCount = 0;
-            _maxDivideCount = 2;
+            _maxDivideCount = 2; _maxCount = 6;
             _minMass = 200;
-            _behavior = new SafeBehavior();
-                       
-            _cells.Add(new PlayerCell(0, 0, _minMass, ID) { Position = new Vector2f(Objects.Random.Next(-Game.sizeX, Game.sizeX), Objects.Random.Next(-Game.sizeY, Game.sizeY)) });
-            for (int i = 0; i < 6; i++)
+            _cells.Add(new PlayerCell(0, 0, _minMass, ID) { Position = new Vector2f(Game.Random.Next(-Game.MapSizeX, Game.MapSizeX), Game.Random.Next(-Game.MapSizeY, Game.MapSizeY)) });
+            for (int i = 0; i < _maxCount; i++)
             {
-                _freeCells.Add(new PlayerCell(x: 0, y: 0, mass: 0, ID));
+                _freeCells.Add(new PlayerCell(x: 0, y: 0, mass: _minMass, ID) { CellColor = ((PlayerCell)_cells[0]).CellColor });
             }
         }
         public IBehavior? Behavior
@@ -52,20 +51,13 @@ namespace Agario.Cells.Bots
         public void AddCell(Cell cell)
         {
             _cells.Add(cell);
+            Objects.Add(cell);
         }
         public void RemoveCell(Cell cell)
         {
             _cells.Remove(cell);
+            Objects.Remove(cell);
         }
-
-        virtual public void Draw(RenderWindow window)
-        {
-            foreach (var cell in _cells)
-            {
-                cell.Draw(window);
-            }
-        }
-
         virtual public void Update(RenderWindow window)
         {
             _targetPoint = Behavior!.FindNewTargetPoint(this);
@@ -73,16 +65,16 @@ namespace Agario.Cells.Bots
             {
                 if (cell is PlayerCell moveCell)
                 {
-                    moveCell.Move(window, _targetPoint);
+                    moveCell.Move(_targetPoint);
                 }
             }
             Logic.HandleCollisions(_cells);
-            Logic.Merge(_cells);
+            Logic.Merge(this);
         }
         public abstract void SuperPower();
         public void VirusSplit(Cell cell)
         {
-            int splitCount = Math.Min(4, 5 - _cells.Count);
+            int splitCount = Math.Min(_maxCount - 1, _maxCount - _cells.Count);
             if (splitCount <= 0)
                 return;
 
@@ -99,11 +91,11 @@ namespace Agario.Cells.Bots
                 cellToAdd.Position = new Vector2f(cell.X + 100 * MathF.Cos(angle), cell.Y + 100 * MathF.Sin(angle));
                 cellToAdd.Acceleration = true;
                 cellToAdd.AccelerationDirection = dir;
-                cellToAdd.AccelerationDistance = cell.Radius * 10;
+                cellToAdd.AccelerationDistance = cell.Radius * 5;
                 cellToAdd.StartAccelerationPoint = center;
                 cellToAdd.Mass = fragmentMass;
-                cellToAdd.DivisionTime = Timer.GameTime;
-                _cells.Add(cellToAdd);
+                cellToAdd.DivisionTime = GameLogic.Timer.GameTime;
+                AddCell(cellToAdd);
             }
         }
 
@@ -117,7 +109,7 @@ namespace Agario.Cells.Bots
             newCell.Acceleration = true;
             newCell.DivisionTime = currentTime;
             newCell.AccelerationDirection = playerCell.Direction * 10000;
-            newCell.AccelerationDistance = playerCell.Radius * 6; // ПОДУМАТИ ЯК КРАЩЕ
+            newCell.AccelerationDistance = playerCell.Radius * 3 + 300f; 
             newCell.StartAccelerationPoint = new Vector2f(cell.X, cell.Y);
             return newCell;
         }

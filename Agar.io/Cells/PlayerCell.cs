@@ -1,7 +1,8 @@
-﻿using Agario.Interfaces;
+﻿using Agario.GameLogic;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
+using Timer = Agario.GameLogic.Timer;
 
 namespace Agario.Cells
 {
@@ -15,7 +16,8 @@ namespace Agario.Cells
         private bool _acceleration = false;
         private float _divisionTime;
         private float _accelerationTime;
-        private Texture _texture = new Texture("textures/test2.jpg");
+        private Font _font;
+        private Text _textToDraw;
         public Vector2f AccelerationDirection
         {
             get { return _accelerationDirection; }
@@ -30,7 +32,6 @@ namespace Agario.Cells
         public bool IsMergeable
         {
             get { return Timer.GameTime - DivisionTime >= 30.0f; }
-           
         }
         public bool Acceleration
         {
@@ -48,24 +49,49 @@ namespace Agario.Cells
             set { _startAccelerationPoint = value; }
         }
         public int ID { get; set; }
+        public string TextToDraw
+        {
+            set
+            {
+                _textToDraw.DisplayedString = value;
+            }
+        }
+        public Color CellColor
+        {
+            get { return Circle.FillColor; }
+            set { Circle.FillColor = value;
+                byte r = (byte)(value.R * 0.7f);
+                byte g = (byte)(value.G * 0.7f);
+                byte b = (byte)(value.B * 0.7f);
 
+                Circle.OutlineColor = new Color(r, g, b, 250);
+            }
+        }
         public PlayerCell(float x = 0, float y = 0, float mass = 200, int id = 1) 
         {
             ID = id;
             Position = new Vector2f(x, y);
             Mass = mass;
-            Circle.FillColor = Color.White;
-            Circle.OutlineColor = new Color(100, 0, 0);
-            Circle.OutlineThickness = 4;
-            Circle.Texture = _texture;
+            var rand = Game.Random;
+            OutLineThickness = 2;
+            CellColor = new Color((byte)rand.Next(0, 255), (byte)rand.Next(0, 255), (byte)rand.Next(0, 255));
             Circle.SetPointCount(100);
             _speed = 2.0f;
             _accelerationTime = 1;
             DivisionTime = 0;
+            _font  = new Font("gnyrwn971.ttf");
+            _textToDraw = new Text(ID.ToString(), _font, 10);
+            _textToDraw.FillColor = Color.Black;
         }
         public override void Draw(RenderWindow window)
         {
             window.Draw(Circle);
+
+            FloatRect textBounds = _textToDraw.GetLocalBounds();
+            _textToDraw.CharacterSize = (uint)(Radius);
+            _textToDraw.Origin = new Vector2f(textBounds.Width / 2f + textBounds.Left, textBounds.Height / 2f + textBounds.Top);
+            _textToDraw.Position = Position;
+            window.Draw(_textToDraw);
         }
         private void UpdateSpeed()
         {
@@ -75,7 +101,7 @@ namespace Agario.Cells
         {
             return _accelerationDistance <= Logic.GetDistanceBetweenPoints(new Vector2f(X, Y), _startAccelerationPoint);
         }
-        public void Move(RenderWindow window, Vector2f targetPoint)
+        public void Move(Vector2f targetPoint)
         {
             UpdateSpeed();
             if (_acceleration)

@@ -1,21 +1,21 @@
 ﻿using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
-using Agario.Interfaces;
-using NetTopologySuite.Utilities;
+using Agario.GameLogic;
+using Timer = Agario.GameLogic.Timer;
 
 namespace Agario.Cells
 {
-    sealed public class Player : IUpdatable, IDrawable, IVirusSplittable, ICellManager<Cell>
+    sealed public class Player : IUpdatable, IVirusSplittable, ICellManager<Cell>
     {       
-        private Texture _texture = new Texture("textures/test2.jpg");
         private int _maxCellsCount;
         private float _minMass;
         private float _lastDivideTime;
         private List<Cell> _cells;
         private List<Cell> _freeCells;
         private int _id;
-        public Player(int id = 1000)
+        private Color _cellsColor;
+        public Player(int id)
         {
             _id = id;
             _maxCellsCount = 16;
@@ -23,10 +23,11 @@ namespace Agario.Cells
             _lastDivideTime = 0;
             _freeCells = new List<Cell>();
             _cells = new List<Cell>();
-            _cells.Add(new PlayerCell(mass: 600, id: id));
-            for (int i = 0; i < 16; i++)
+            _cells.Add(new PlayerCell(mass: _minMass, id: _id) { TextToDraw = "You"});
+            _cellsColor = ((PlayerCell)_cells[0]).CellColor;
+            for (int i = 0; i < _maxCellsCount; i++)
             {
-                _freeCells.Add(new PlayerCell(x: 0, y: 0, mass: 0, id));
+                _freeCells.Add(new PlayerCell(x: 0, y: 0, mass: 1, id) { CellColor = _cellsColor, TextToDraw = "You" });
             }
         }
         public List<Cell> Cells
@@ -58,11 +59,11 @@ namespace Agario.Cells
                 cellToAdd.Position = new Vector2f(cell.X + cell.Radius * MathF.Cos(angle), cell.Y + cell.Radius * MathF.Sin(angle));
                 cellToAdd.Acceleration = true;
                 cellToAdd.AccelerationDirection = dir;
-                cellToAdd.AccelerationDistance = cell.Radius * 10;
+                cellToAdd.AccelerationDistance = cell.Radius * 5;
                 cellToAdd.StartAccelerationPoint = center;
                 cellToAdd.Mass = fragmentMass;
                 cellToAdd.DivisionTime = Timer.GameTime;
-                _cells.Add(cellToAdd);
+                AddCell(cellToAdd);
             }
             
         }
@@ -73,32 +74,25 @@ namespace Agario.Cells
                 _lastDivideTime = Timer.DeltaTime;
                 Logic.Divide(this, _maxCellsCount, ref _lastDivideTime, _minMass);
             }
-            Logic.Merge(_cells);
+            Logic.Merge(this);
             var targetPoint = window.MapPixelToCoords(Mouse.GetPosition(window));
             foreach (var cell in _cells)
             {
                 if (cell is PlayerCell playerCell)
-                    playerCell.Move(window, targetPoint);
+                    playerCell.Move(targetPoint);
             }
             Logic.HandleCollisions(_cells);
         }
-
-        public void Draw(RenderWindow window)
-        {
-            foreach (var cell in _cells)
-            {
-                cell.Draw(window);
-            }
-        }
-
         public void AddCell(Cell cell)
         {
             _cells.Add(cell);
+            Objects.Add(cell);
         }
 
         public void RemoveCell(Cell cell)
         {
             _cells.Remove(cell);
+            Objects.Remove(cell);
         }
 
         public float GetTotalMass() => _cells.Sum(cell => cell.Mass);
@@ -113,7 +107,7 @@ namespace Agario.Cells
             newCell.Acceleration = true;
             newCell.DivisionTime = currentTime;
             newCell.AccelerationDirection = playerCell.Direction * 10000;
-            newCell.AccelerationDistance = playerCell.Radius * 6; // ПОДУМАТИ ЯК КРАЩЕ
+            newCell.AccelerationDistance = playerCell.Radius*3 + 300f;
             newCell.StartAccelerationPoint = new Vector2f(cell.X, cell.Y);
             return newCell;
         }

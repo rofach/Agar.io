@@ -14,7 +14,7 @@ namespace Agario.Cells.Bots
         {            
             Behavior = new AggressiveBehavior();
         }
-        public override void SuperPower()
+        public override void UseSuperPower()
         {
             if (Timer.GameTime - lastSuperPowerUsingTime < 120)
                 return;

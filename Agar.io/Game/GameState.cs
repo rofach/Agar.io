@@ -4,10 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Agario.Cells
+namespace Agario.GameLogic
 {
-    public interface IVirusSplittable
+    public enum GameState
     {
-        void VirusSplit(Cell cell);
+        MainMenu,
+        Playing,
+        Paused,
+        GameOver
     }
 }

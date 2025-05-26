@@ -1,12 +1,14 @@
 ﻿using Agario.GameLogic;
 using Agario.GameLogic;
+using Newtonsoft.Json;
 using SFML.Graphics;
 using SFML.System;
+using System.Text.Json.Serialization;
 using Timer = Agario.GameLogic.Timer;
 
 namespace Agario.Cells
 {
-    sealed class Food : Cell, IDrawable, IUpdatable
+    sealed public class Food : Cell, IUpdatable
     {
         private Random _rand = new Random();
         private Cell? _target;
@@ -16,7 +18,7 @@ namespace Agario.Cells
             set { _target = value; }
         }
         public bool IsEaten { get; set; } = false;
-        public Food(int mass = 30)
+        public Food(float mass = 30)
         {
             ChangePos(Game.MapSizeX, Game.MapSizeY);
             Mass = Game.Random.Next(10, 50);

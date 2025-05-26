@@ -50,7 +50,7 @@ namespace Agario.Strategies
                         {
                             if (Logic.GetDistanceBetweenCells(enemy, cell) < cell.Radius + enemy.Radius && enemy.IsBiggerThan(cell))
                             {
-                                bot.SuperPower();
+                                bot.UseSuperPower();
                                 break;
                             }
                         }

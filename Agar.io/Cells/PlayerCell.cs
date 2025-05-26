@@ -1,37 +1,65 @@
 ﻿using Agario.GameLogic;
+using Newtonsoft.Json;
 using SFML.Graphics;
 using SFML.System;
-using SFML.Window;
 using Timer = Agario.GameLogic.Timer;
 
 namespace Agario.Cells
 {
-    sealed class PlayerCell : Cell, IMergeable
+    [JsonObject(MemberSerialization.OptIn, IsReference = true)]
+    sealed public class PlayerCell : Cell, IMergeable
     {
+        [JsonProperty]
         private Vector2f _direction;
+        [JsonProperty]
         private Vector2f _accelerationDirection;
+        [JsonProperty]
         private Vector2f _startAccelerationPoint;
+        [JsonProperty]
         private float _accelerationDistance;
+        [JsonProperty]
         private float _speed;
+        [JsonProperty]
         private bool _acceleration = false;
+        [JsonProperty]
         private float _divisionTime;
+        [JsonProperty]
         private float _accelerationTime;
-        private Font _font;
+        [JsonProperty]
+        private float _timeToMerge = 0.0f;
+        [JsonProperty]
+        private int _id;
+
         private Text _textToDraw;
+        private string _textToDrawString;
+
         public Vector2f AccelerationDirection
         {
             get { return _accelerationDirection; }
             set { _accelerationDirection = value; }
         }
-        public float DivisionTime { get => _divisionTime; set { _divisionTime = value; _accelerationTime = value; } }
+        public float DivisionTime
+        {
+            get => _divisionTime; 
+            set
+            {
+                _divisionTime = value; 
+                _accelerationTime = value;
+            }
+        }
         public float AccelerationTime {  get => _accelerationTime; set => _accelerationTime = value; }
         public Vector2f Direction
         {
             get { return _direction; }
         }
+        public float TimeToMerge
+        {
+            get { return _timeToMerge; }
+            set { _timeToMerge = value; }
+        }
         public bool IsMergeable
         {
-            get { return Timer.GameTime - DivisionTime >= 30.0f; }
+            get { return Timer.GameTime - DivisionTime >= _timeToMerge; }
         }
         public bool Acceleration
         {
@@ -48,18 +76,24 @@ namespace Agario.Cells
             get { return _startAccelerationPoint; }
             set { _startAccelerationPoint = value; }
         }
-        public int ID { get; set; }
+        [JsonProperty]
+        public int ID { get => _id; set => _id = value; }
+        [JsonProperty]
         public string TextToDraw
         {
+            get =>  _textToDrawString;
             set
             {
                 _textToDraw.DisplayedString = value;
+                _textToDrawString = value;
             }
         }
+        [JsonProperty]
         public Color CellColor
         {
             get { return Circle.FillColor; }
-            set { Circle.FillColor = value;
+            set { 
+                Circle.FillColor = value;
                 byte r = (byte)(value.R * 0.7f);
                 byte g = (byte)(value.G * 0.7f);
                 byte b = (byte)(value.B * 0.7f);
@@ -67,7 +101,8 @@ namespace Agario.Cells
                 Circle.OutlineColor = new Color(r, g, b, 250);
             }
         }
-        public PlayerCell(float x = 0, float y = 0, float mass = 200, int id = 1) 
+        [JsonConstructor]
+        public PlayerCell(float x = 0, float y = 0, float mass = 200, int id = 1) : base()
         {
             ID = id;
             Position = new Vector2f(x, y);
@@ -78,17 +113,21 @@ namespace Agario.Cells
             Circle.SetPointCount(100);
             _speed = 2.0f;
             _accelerationTime = 1;
+            _timeToMerge = 30f;
             DivisionTime = 0;
-            _font  = new Font("gnyrwn971.ttf");
-            _textToDraw = new Text(ID.ToString(), _font, 10);
+
+            if (string.IsNullOrEmpty(_textToDrawString)) // for deserialization
+                _textToDrawString = ID.ToString();
+            _textToDraw = new Text(_textToDrawString, Game.GameFont, 10);
             _textToDraw.FillColor = Color.Black;
         }
+
         public override void Draw(RenderWindow window)
         {
             window.Draw(Circle);
-
             FloatRect textBounds = _textToDraw.GetLocalBounds();
-            _textToDraw.CharacterSize = (uint)(Radius);
+            _textToDraw.Scale = new Vector2f(0.3f, 0.3f);
+            _textToDraw.CharacterSize = (uint)(Radius*2);
             _textToDraw.Origin = new Vector2f(textBounds.Width / 2f + textBounds.Left, textBounds.Height / 2f + textBounds.Top);
             _textToDraw.Position = Position;
             window.Draw(_textToDraw);

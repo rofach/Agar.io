@@ -7,50 +7,110 @@ using NetTopologySuite.Index.Strtree;
 using Agario.Strategies;
 using Agario.Cells.Bots;
 using Agario.GameLogic;
-
+using Agario.UI;
+using System.Reflection;
+using Newtonsoft.Json;
 namespace Agario.GameLogic
 {
     sealed public class Game
     {
         public static int MapSizeX = 4000, MapSizeY = 4000;
+
         private float _lastMassUpdate;
         private View? _camera;
         private Player? _player;
         private BotBehaviorsManager? _botStrategiesManager;
         private VertexArray? _grid;
         static public readonly Random Random = new Random();
-        public Game(int foodCount = 0, int botsCount = 0, int virusCount = 0)
+
+        private MenuManager _menuManager;
+        public static readonly Font GameFont = new Font("Moodcake.ttf");
+
+        private static int _nextId = 0;
+        public GameState CurrentGameState { get; private set; } = GameState.MainMenu;
+
+        private int _initialFoodCount = 200;
+        private int _initialBotsCount = 10;
+        private int _initialVirusCount = 5;
+
+        public Game(int foodCount = 200, int botsCount = 10, int virusCount = 5)
         {
+            _initialFoodCount = foodCount;
+            _initialBotsCount = botsCount;
+            _initialVirusCount = virusCount;
+        }
+
+        private void InitializeEssentialComponents(RenderWindow window)
+        {
+            _menuManager = new MenuManager(window, GameFont, this);
+            _camera = new View(new FloatRect(0, 0, window.Size.X, window.Size.Y));
+            CreateGrid();
+        }
+        public void StartNewGame()
+        {
+            Objects.ClearAll();
+
             _lastMassUpdate = 0;
-            for (int i = 0; i < foodCount; i++)
+            for (int i = 0; i < _initialFoodCount; i++)
             {
                 Objects.Add(new Food(50));
-
             }
             _player = new Player(1000);
             Objects.Add(_player);
-            for (int i = 0; i < botsCount; i++)
+            for (int i = 0; i < _initialBotsCount; i++)
             {
-                if (i % 3 == 0)
-                    Objects.Add(new TeleportBot(i));
-                else if (i % 3 == 1)
-                    Objects.Add(new SpeedBot(i));
-                else
-                {
-                    Objects.Add(new MassBot(i));
-                }
+                if (i % 3 == 0) Objects.Add(new TeleportBot(i));
+                else if (i % 3 == 1) Objects.Add(new SpeedBot(i));
+                else Objects.Add(new MassBot(i));
             }
-            for (int i = 0; i < virusCount; i++)
+            for (int i = 0; i < _initialVirusCount; i++)
             {
                 Objects.Add(new Virus(1000));
             }
 
             _botStrategiesManager = new BotBehaviorsManager();
-            CreateGrid();
 
+            if (_camera != null && _player != null && _player.Cells.Count > 0)
+            {
+                _camera.Center = GetCenterCamera();
+
+            }
+            else if (_camera != null)
+            {
+                _camera.Center = new Vector2f(MapSizeX / 2f, MapSizeY / 2f);
+            }
+
+            CurrentGameState = GameState.Playing;
+            Timer.ResetDeltaClock();
         }
+        public void ResumeGame()
+        {
+            if (CurrentGameState == GameState.Paused)
+            {
+                CurrentGameState = GameState.Playing;
+                Timer.ResetDeltaClock();
+            }
+        }
+        public void PauseGame(RenderWindow window)
+        {
+
+            if (CurrentGameState == GameState.Playing)
+            {
+                CurrentGameState = GameState.Paused;
+                _menuManager.SetMenuState(MenuState.Paused);
+                UpdateCameraSize(_camera, window);
+            }
+        }
+        public void ShowInitialMenu()
+        {
+            CurrentGameState = GameState.MainMenu;
+            _menuManager.SetMenuState(MenuState.Initial);
+            _player = null;
+        }
+
         private void Draw(RenderWindow window)
         {
+            window.SetView(_camera);
             DrawGrid(window);
             DrawObjects(window);
         }
@@ -62,6 +122,12 @@ namespace Agario.GameLogic
             CheckFoodEating(window);
             CheckCellEating();
             UpdateCells(window);
+            Objects.UpdateObjects();
+
+            if (CurrentGameState == GameState.Playing && (_player == null || _player.Cells.Count == 0))
+            {
+                ShowInitialMenu();
+            }
         }
         private void DrawObjects(RenderWindow window)
         {
@@ -70,7 +136,7 @@ namespace Agario.GameLogic
             {
                 if (obj is Cell cell)
                 {
-                    if (IsInViewZone(obj, _camera))
+                    if (IsInViewZone(cell, _camera))
                         cellsToDraw.Add(cell);
                 }
                 else obj.Draw(window);
@@ -125,11 +191,11 @@ namespace Agario.GameLogic
                 if (obj is not PlayerCell cell) continue;
                 if (cell.Mass >= 200 && Timer.GameTime - _lastMassUpdate > 0.2)
                 {
-                    cell.Mass *= 0.999f;
+                    cell.Mass *= 0.998f;
                     upd = true;
                 }
             }
-            if(upd == true) _lastMassUpdate = Timer.GameTime;
+            if (upd == true) _lastMassUpdate = Timer.GameTime;
 
         }
         private void CheckVirusEating()
@@ -258,16 +324,12 @@ namespace Agario.GameLogic
                 food.IsEaten = false;
             }
         }
-        private bool IsInViewZone(IDrawable obj, View camera)
+        private bool IsInViewZone(Cell obj, View camera)
         {
             return Math.Abs(camera.Center.X - obj.X) < camera.Size.X / 2 + obj.Radius * 4 &&
                    Math.Abs(camera.Center.Y - obj.Y) < camera.Size.Y / 2 + obj.Radius * 4;
         }
-        private static void OnClose(object sender, EventArgs e)
-        {
-            RenderWindow window = (RenderWindow)sender;
-            window.Close();
-        }
+
         private Vector2f GetCenterCamera()
         {
             int count = 0;
@@ -277,10 +339,8 @@ namespace Agario.GameLogic
             Vector2f vec = new();
             foreach (var cell in _player.Cells)
             {
-
                 count++;
                 center += new Vector2f(cell.X, cell.Y);
-
             }
             return center / count;
         }
@@ -295,40 +355,228 @@ namespace Agario.GameLogic
 
         public void Run()
         {
-            var settings = new ContextSettings
-            {
-                AntialiasingLevel = 5
+            var settings = new ContextSettings { AntialiasingLevel = 5 }; //
+            RenderWindow window = new RenderWindow(new VideoMode(800, 600), "Agario", Styles.Default, settings); //
 
-            };
-            RenderWindow window = new RenderWindow(new VideoMode(800, 600), "Agario", Styles.Default, settings);
-            //window.SetVerticalSyncEnabled(true);
-            window.Closed += new EventHandler(OnClose);
-            _camera = new View(new FloatRect(0, 0, 400, 300));
-            window.SetView(_camera);
+            InitializeEssentialComponents(window);
+            window.Closed += OnCloseWindow;
+            window.MouseButtonPressed += OnMouseButtonPressed;
+            window.KeyPressed += OnKeyPressed;
+            window.Resized += OnWindowResized;
             while (window.IsOpen)
             {
-                window.Resized += (sender, e) =>
-                {
-                    FloatRect visibleArea = new FloatRect(0, 0, e.Width / 2, e.Height / 2);
-                    _camera = new View(visibleArea);
-                };
-               
-                Objects.UpdateObjects();
-               
-                window.SetView(_camera);
                 window.DispatchEvents();
+
                 window.Clear(Color.White);
-                Draw(window);
-                Update(window);
-                _camera.Center = GetCenterCamera();
-                UpdateCameraSize(_camera, window);
+
+                switch (CurrentGameState)
+                {
+                    case GameState.MainMenu:
+                        var view = new View(new FloatRect(0, 0, window.Size.X, window.Size.Y));
+                        window.SetView(view);
+                        _menuManager.Draw(window);
+                        break;
+
+                    case GameState.Playing:
+
+                        Draw(window);
+                        Update(window);
+                        if (_camera != null && _player != null && _player.Cells.Count > 0)
+                        {
+                            _camera.Center = GetCenterCamera();
+                            UpdateCameraSize(_camera, window);
+                        }
+                        
+                        break;
+
+                    case GameState.Paused:
+                        Draw(window);
+                        _menuManager.Draw(window);
+                        break;
+                }
                 window.Display();
             }
         }
-
-        public void Dispose()
+        private void OnCloseWindow(object? sender, EventArgs e)
         {
-            throw new NotImplementedException();
+            if (sender is RenderWindow window)
+            {
+                window.Close();
+            }
         }
+        private void OnWindowResized(object sender, SizeEventArgs e)
+        {
+            if (_camera != null)
+            {
+                _camera.Size = new Vector2f(e.Width, e.Height);
+            }
+            if (_menuManager != null && _menuManager.IsVisible)
+            {
+                _menuManager.HandleResize();
+            }
+            UpdateCameraSize(_camera, (RenderWindow)sender);
+
+        }
+        private void OnMouseButtonPressed(object? sender, MouseButtonEventArgs e)
+        {
+            if (CurrentGameState == GameState.MainMenu || CurrentGameState == GameState.Paused)
+            {
+                _menuManager.HandleClick(new Vector2i(e.X, e.Y));
+            }
+        }
+
+        private void OnKeyPressed(object? sender, KeyEventArgs e)
+        {
+            if (e.Code == Keyboard.Key.Escape)
+            {
+                if (CurrentGameState == GameState.Playing)
+                {
+                    PauseGame(sender as RenderWindow);
+                    UpdateCameraSize(_camera, (RenderWindow)sender);
+                }
+                else if (CurrentGameState == GameState.Paused)
+                {
+                    ResumeGame();
+                }
+            }
+            else if (e.Code == Keyboard.Key.Space)
+                _player.SplitKeyPressed();
+
+        }
+
+        public void SaveGame()
+        {
+            SerializableGameData gameData = new SerializableGameData
+            {
+                LastMassUpdate = _lastMassUpdate,
+                PlayerInstance = _player,
+                SavedTotalGameTime = Timer.GameTime
+            };
+
+            if (Objects.GetCellsManagers() != null)
+            {
+                foreach (var manager in Objects.GetCellsManagers())
+                {
+                    if (manager is Bot bot && manager != _player)
+                    {
+                        gameData.Bots.Add(bot);
+                    }
+                }
+            }
+
+            if (Objects.GetDrawableObjects() != null)
+            {
+                foreach (var drawable in Objects.GetDrawableObjects())
+                {
+                    if (drawable is Virus virus)
+                    {
+                        gameData.Viruses.Add(virus);
+                    }
+                    else if (drawable is Food food)
+                    {
+                        gameData.Foods.Add(food);
+                    }
+                }
+            }
+
+            var settings = new JsonSerializerSettings
+            {
+                PreserveReferencesHandling = PreserveReferencesHandling.Objects,
+                Formatting = Formatting.Indented,
+                TypeNameHandling = TypeNameHandling.Auto,
+
+            };
+
+            try
+            {
+                string json = JsonConvert.SerializeObject(gameData, settings);
+                File.WriteAllText("game_save.json", json);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving game: {ex.Message}");
+            }
+        }
+        public void LoadGame()
+        {
+            Objects.ClearAll();
+            try
+            {
+                string json = File.ReadAllText("game_save.json");
+                var settings = new JsonSerializerSettings
+                {
+                    PreserveReferencesHandling = PreserveReferencesHandling.Objects,
+                    TypeNameHandling = TypeNameHandling.Auto
+                };
+
+                SerializableGameData? loadedData = JsonConvert.DeserializeObject<SerializableGameData>(json, settings);
+                Timer.SetTotalGameTime(loadedData.SavedTotalGameTime);
+                Timer.ResetDeltaClock();
+                if (loadedData == null)
+                {
+                    StartNewGame();
+                    return;
+                }
+
+                _lastMassUpdate = loadedData.LastMassUpdate;
+                _player = loadedData.PlayerInstance;
+                if (_player != null)
+                {
+                    Objects.Add(_player);
+                }
+
+                if (loadedData.Bots != null)
+                {
+                    foreach (var bot in loadedData.Bots)
+                    {
+                        if (bot != null) Objects.Add(bot);
+                    }
+                }
+                if (loadedData.Viruses != null)
+                {
+                    foreach (var virus in loadedData.Viruses)
+                    {
+                        if (virus != null) Objects.Add(virus);
+                    }
+                }
+                if (loadedData.Foods != null)
+                {
+                    foreach (var food in loadedData.Foods)
+                    {
+                        if (food != null) Objects.Add(food);
+                    }
+                }
+                _botStrategiesManager = new BotBehaviorsManager();
+
+                if (_camera != null)
+                {
+                    if (_player != null && _player.Cells.Any())
+                    {
+                        _camera.Center = GetCenterCamera();
+                    }
+                    else
+                    {
+                        _camera.Center = new Vector2f(MapSizeX / 2f, MapSizeY / 2f);
+                    }
+                }
+
+                CurrentGameState = GameState.Playing;
+                Objects.UpdateObjects();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading game: {ex.Message}. Starting new game");
+                StartNewGame();
+            }
+        }
+    }
+    public class SerializableGameData
+    {
+        public Player PlayerInstance { get; set; }
+        public List<Bot> Bots { get; set; } = new List<Bot>();
+        public List<Virus> Viruses { get; set; } = new List<Virus>();
+        public List<Food> Foods { get; set; } = new List<Food>();
+        public float LastMassUpdate { get; set; }
+        public float SavedTotalGameTime { get; set; }
     }
 }

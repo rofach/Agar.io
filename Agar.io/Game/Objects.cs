@@ -19,6 +19,7 @@ namespace Agario.GameLogic
         private static List<ICellManager<Cell>> _cellManagers = new();
         private static STRtree<Cell> _cellsTree = new();
         private static STRtree<Cell> _foodTree = new();
+        static int k = 0;
        
         public static void Add<T>(T obj)
         {
@@ -111,6 +112,15 @@ namespace Agario.GameLogic
         public static STRtree<Cell> GetCellsTree() => _cellsTree;
         public static STRtree<Cell> GetFoodTree() => _foodTree;
 
+        public static void ClearAll()
+        {
+            _drawableObjects.Clear();
+            _updatableObjects.Clear();
+            _cellManagers.Clear();
+            _cellsTree = new STRtree<Cell>();
+            _foodTree = new STRtree<Cell>();
+
+        }
     }
 
 }

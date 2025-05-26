@@ -3,17 +3,26 @@ using SFML.System;
 using SFML.Window;
 using Agario.GameLogic;
 using Timer = Agario.GameLogic.Timer;
+using Newtonsoft.Json;
 
 namespace Agario.Cells
 {
+    [JsonObject(MemberSerialization.OptIn, IsReference = true)]
     sealed public class Player : IUpdatable, IVirusSplittable, ICellManager<Cell>
-    {       
+    {
+        [JsonProperty]
         private int _maxCellsCount;
+        [JsonProperty]
         private float _minMass;
+        [JsonProperty]
         private float _lastDivideTime;
+        [JsonProperty]
         private List<Cell> _cells;
+        [JsonProperty]
         private List<Cell> _freeCells;
+        [JsonProperty]
         private int _id;
+        [JsonProperty]
         private Color _cellsColor;
         public Player(int id)
         {
@@ -30,6 +39,7 @@ namespace Agario.Cells
                 _freeCells.Add(new PlayerCell(x: 0, y: 0, mass: 1, id) { CellColor = _cellsColor, TextToDraw = "You" });
             }
         }
+        //public
         public List<Cell> Cells
         {
             get { return _cells; }           
@@ -67,13 +77,12 @@ namespace Agario.Cells
             }
             
         }
+        public void SplitKeyPressed()
+        {
+            Logic.Divide(this, _maxCellsCount, ref _lastDivideTime, _minMass);
+        }
         public void Update(RenderWindow window)
         {
-            if (Keyboard.IsKeyPressed(Keyboard.Key.Space) && Timer.GameTime - _lastDivideTime > 0.3)
-            {
-                _lastDivideTime = Timer.DeltaTime;
-                Logic.Divide(this, _maxCellsCount, ref _lastDivideTime, _minMass);
-            }
             Logic.Merge(this);
             var targetPoint = window.MapPixelToCoords(Mouse.GetPosition(window));
             foreach (var cell in _cells)

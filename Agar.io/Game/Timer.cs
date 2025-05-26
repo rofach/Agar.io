@@ -1,19 +1,29 @@
 ﻿using SFML.System;
+using System.Text.Json.Serialization;
 
 
 namespace Agario.GameLogic
 {
     public static class Timer
     {
-        static private Clock delta = new Clock();
-        static private Clock timer = new Clock();
+        private static Clock s_delta = new Clock();
+        private static float _totalActiveGameTime = 0f;
         public static float DeltaTime { get; private set; }
-        public static float GameTime { get { return timer.ElapsedTime.AsSeconds(); } }
+        public static float GameTime { get { return _totalActiveGameTime; } }
         public static void Update()
         {
-            DeltaTime = delta.Restart().AsSeconds();
+            DeltaTime = s_delta.Restart().AsSeconds();
+            _totalActiveGameTime += DeltaTime;
         }
-
-
+                
+        public static void ResetDeltaClock()
+        {
+            s_delta.Restart();
+            DeltaTime = 0.001f;
+        }
+        public static void SetTotalGameTime(float loadedTime)
+        {
+            _totalActiveGameTime = loadedTime;
+        }
     }
 }

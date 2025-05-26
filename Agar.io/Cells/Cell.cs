@@ -1,16 +1,20 @@
 ﻿using Agario.GameLogic;
+using Newtonsoft.Json;
 using SFML.Graphics;
 using SFML.System;
 using System.Runtime.CompilerServices;
 
 namespace Agario.Cells
 {
+    [JsonObject(MemberSerialization.OptIn, IsReference = true)]
     abstract public class Cell : IDrawable, IComparable
     {
-
+        [JsonProperty]
         private float _x, _y, _mass, _radius;
+        [JsonProperty]
         private Vector2f _position;
         private CircleShape _circle;
+        [JsonProperty]
         private float _outLineThickness;
         public float X
         {
@@ -30,6 +34,7 @@ namespace Agario.Cells
                 _position = new Vector2f(_x, _y);
             }
         }
+        
         public Vector2f Position
         {
             get => new Vector2f(_x, _y);
@@ -37,6 +42,15 @@ namespace Agario.Cells
             {
                 _position = value; _x = value.X; _y = value.Y;
                 CirclePosition = new Vector2f(value.X, value.Y);
+            }
+        }
+        public Vector2f CirclePosition
+        {
+            get => new Vector2f(_circle.Position.X, _circle.Position.Y);
+            private set
+            {
+                _circle.Position = value;
+                _circle.Origin = new Vector2f(_circle.Radius, _circle.Radius);
             }
         }
         public float Radius
@@ -47,15 +61,6 @@ namespace Agario.Cells
                 if (value <= 0) throw new ArgumentException("Radius must be positive");
                 _radius = value;
                 _circle.Radius = value;
-            }
-        }
-        public Vector2f CirclePosition
-        {
-            get => new Vector2f(_circle.Position.X, _circle.Position.Y);
-            protected set
-            {
-                _circle.Position = value;
-                _circle.Origin = new Vector2f(_circle.Radius, _circle.Radius);
             }
         }
         public CircleShape Circle
@@ -72,6 +77,7 @@ namespace Agario.Cells
                 Circle.OutlineThickness = value;
             }
         }
+        [JsonProperty(PropertyName = "Mass")]
         public float Mass
         {
             get => _mass;
@@ -82,12 +88,6 @@ namespace Agario.Cells
                 CirclePosition = new Vector2f(X, Y);
             }
         }
-        public void InitializeCircle(float x, float y, float mass)
-        {
-            Position = new Vector2f(x, y);
-            Mass = mass;
-            Position = new Vector2f(x, y);
-        }
         public Cell()
         {
             _circle = new CircleShape();
@@ -97,13 +97,19 @@ namespace Agario.Cells
             _circle.SetPointCount(100);
 
         }
+        public void InitializeCircle(float x, float y, float mass)
+        {
+            Position = new Vector2f(x, y);
+            Mass = mass;
+            Position = new Vector2f(x, y);
+        }
         public virtual void Draw(RenderWindow window)
         {
             if (_circle != null)
                 window.Draw(_circle);
         }
 
-        protected float CalculateRadius(float mass)
+        private float CalculateRadius(float mass)
         {
             return MathF.Sqrt(mass);
         }

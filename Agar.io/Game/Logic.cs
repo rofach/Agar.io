@@ -44,8 +44,8 @@ namespace Agario.GameLogic
 
                     Vector2f pos1 = ((Cell)cell1).Position;
                     Vector2f pos2 = ((Cell)cell2).Position;
-                    Vector2f delta = pos2 - pos1;
-                    float actualDistance = (float)Math.Sqrt(delta.X * delta.X + delta.Y * delta.Y);
+                    Vector2f delta = pos2 - pos1;                  
+                    float actualDistance = GetDistanceBetweenPoints(pos1, pos2);
                     float minDistance = cells[i].Radius + cells[j].Radius;
 
                     if (actualDistance == 0)
@@ -54,7 +54,7 @@ namespace Agario.GameLogic
                     if (actualDistance < minDistance)
                     {
                         float overlap = (minDistance - actualDistance) / 2;
-                        Vector2f normal = new Vector2f(delta.X / actualDistance, delta.Y / actualDistance);
+                        Vector2f normal = delta / actualDistance;
                         correctionVectors[i] -= normal * overlap;
                         correctionVectors[j] += normal * overlap;
                     }
@@ -97,25 +97,6 @@ namespace Agario.GameLogic
 
         public static void Merge(ICellManager<Cell> cellManager)
         {
-            /*var cells = cellManager.Cells;
-            for (int i = 0; i < cells.Count; i++)
-            {
-                if (cells[i] is not IMergeable cell1 || !cell1.IsMergeable)
-                    continue;
-
-                for (int j = 0; j < cells.Count; j++)
-                {
-                    if (cells[j] is not IMergeable cell2 || !cell2.IsMergeable)
-                        continue;
-                    //if (i >= cells.Count || j >= cells.Count) break;
-                    if (CanMerge(cells[i], cells[j]) && cells[i] != cells[j])
-                    {
-                        cells[i].Mass += cells[j].Mass;
-                        cellManager.RemoveCell(cells[j]);
-                        j--;
-                    }
-                }
-            }*/
             var cells = cellManager.Cells;
             for (int i = cells.Count - 1; i >= 0; i--)
             {

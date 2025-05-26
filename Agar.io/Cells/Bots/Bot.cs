@@ -1,24 +1,34 @@
 ﻿using Agario.GameLogic;
 using Agario.GameLogic;
 using Agario.Strategies;
+using Newtonsoft.Json;
 using SFML.Graphics;
 using SFML.System;
 using System.Runtime.InteropServices.Marshalling;
 
 namespace Agario.Cells.Bots
 {
+    [JsonObject(MemberSerialization.OptIn, IsReference = true)]
     abstract public class Bot : IUpdatable, IVirusSplittable, ICellManager<Cell>
     {
+        [JsonProperty]
         protected short _maxDivideCount;
+        [JsonProperty]
         protected short _maxCount;
+        [JsonProperty]
         protected float _minMass;
+        [JsonProperty]
         protected float _lastDivideTime;
+        [JsonProperty]
         protected short _currentDivideCount;
+        [JsonProperty]
         protected List<Cell> _freeCells;
+        [JsonProperty]
         protected List<Cell> _cells;
+        [JsonProperty]
         protected Vector2f _targetPoint;
+        [JsonProperty]
         protected IBehavior? _behavior;
-
         public Bot(int id)
         {
             ID = id;
@@ -28,10 +38,18 @@ namespace Agario.Cells.Bots
             _currentDivideCount = 0;
             _maxDivideCount = 2; _maxCount = 6;
             _minMass = 200;
-            _cells.Add(new PlayerCell(0, 0, _minMass, ID) { Position = new Vector2f(Game.Random.Next(-Game.MapSizeX, Game.MapSizeX), Game.Random.Next(-Game.MapSizeY, Game.MapSizeY)) });
+            _targetPoint = new Vector2f(Game.Random.Next(-Game.MapSizeX, Game.MapSizeX), Game.Random.Next(-Game.MapSizeY, Game.MapSizeY));
+            _cells.Add(new PlayerCell(0, 0, _minMass, ID)
+            {
+                TimeToMerge = 10,
+                Position = new Vector2f(Game.Random.Next(-Game.MapSizeX, Game.MapSizeX), Game.Random.Next(-Game.MapSizeY, Game.MapSizeY))
+            });
             for (int i = 0; i < _maxCount; i++)
             {
-                _freeCells.Add(new PlayerCell(x: 0, y: 0, mass: _minMass, ID) { CellColor = ((PlayerCell)_cells[0]).CellColor });
+                _freeCells.Add(new PlayerCell(x: 0, y: 0, mass: _minMass, ID) 
+                { 
+                    TimeToMerge = 10, CellColor = ((PlayerCell)_cells[0]).CellColor 
+                });
             }
         }
         public IBehavior? Behavior
@@ -71,7 +89,7 @@ namespace Agario.Cells.Bots
             Logic.HandleCollisions(_cells);
             Logic.Merge(this);
         }
-        public abstract void SuperPower();
+        public abstract void UseSuperPower();
         public void VirusSplit(Cell cell)
         {
             int splitCount = Math.Min(_maxCount - 1, _maxCount - _cells.Count);
@@ -110,7 +128,7 @@ namespace Agario.Cells.Bots
             newCell.DivisionTime = currentTime;
             newCell.AccelerationDirection = playerCell.Direction * 10000;
             newCell.AccelerationDistance = playerCell.Radius * 3 + 300f; 
-            newCell.StartAccelerationPoint = new Vector2f(cell.X, cell.Y);
+            newCell.StartAccelerationPoint = cell.Position;
             return newCell;
         }
 

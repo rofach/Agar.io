@@ -22,11 +22,11 @@ namespace Agario.Strategies
                     bot.Behavior = _aggressiveStrategy;
             }
         }
-        private bool CanUseSafeBehavior(Bot bot)
-        {
-            if (bot.Cells.Count > 1)
-                return true;
-            return false;
-        }
+        //private bool CanUseSafeBehavior(Bot bot)
+        //{
+        //    if (bot.Cells.Count > 1)
+        //        return true;
+        //    return false;
+        //}
     }
 }

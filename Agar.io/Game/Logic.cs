@@ -1,10 +1,12 @@
 ﻿using Agario.Cells;
+using SFML.Graphics;
 using SFML.System;
 
 namespace Agario.GameLogic
 {
     public static class Logic
     {
+        public static readonly Random Random = new Random();
         public static float GetDistanceBetweenPoints(Vector2f point1, Vector2f point2)
         {
             return (float)Math.Sqrt(Math.Pow(point1.X - point2.X, 2) + Math.Pow(point1.Y - point2.Y, 2));
@@ -13,6 +15,14 @@ namespace Agario.GameLogic
         {
             return (float)Math.Sqrt(Math.Pow(obj1.X - obj2.X, 2) + Math.Pow(obj1.Y - obj2.Y, 2));
         }
+        public static Vector2f GenereatePoint(float sizeX, float sizeY)
+        {
+            return new Vector2f(
+                Random.Next(-Game.MapSizeX, Game.MapSizeX),
+                Random.Next(-Game.MapSizeY, Game.MapSizeY)
+            );
+        }
+
         public static bool CanEat(Cell thisCell, Cell otherCell)
         {
             return CanMerge(thisCell, otherCell) && thisCell.IsBiggerThan(otherCell);
@@ -25,7 +35,6 @@ namespace Agario.GameLogic
 
         public static void HandleCollisions(List<Cell> cells)
         {
-
             Vector2f[] correctionVectors = new Vector2f[cells.Count];
             for (int i = 0; i < cells.Count; i++)
             {

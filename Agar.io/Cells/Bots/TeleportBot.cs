@@ -18,11 +18,11 @@ namespace Agario.Cells.Bots
         {
             if (Timer.GameTime - lastSuperPowerUsingTime < 120)
                 return;
-            int num = Game.Random.Next(-1, 2);
+            int num = Logic.Random.Next(-1, 2);
             if (num == 1) return;
 
-            float x = Game.Random.Next(-Game.MapSizeX, Game.MapSizeX);
-            float y = Game.Random.Next(-Game.MapSizeY, Game.MapSizeY);
+            float x = Logic.Random.Next(-Game.MapSizeX, Game.MapSizeX);
+            float y = Logic.Random.Next(-Game.MapSizeY, Game.MapSizeY);
             var cells = Objects.GetCellsTree();
             float searchRange = Cells.Max(c => c.Radius) * 2;
             var env = new Envelope(x - searchRange, x + searchRange, y - searchRange, y + searchRange);
@@ -41,8 +41,8 @@ namespace Agario.Cells.Bots
                     minCellsCount = currentCount;
                     newPos = new Vector2f(x, y);
                 }
-                x = Game.Random.Next(-Game.MapSizeX, Game.MapSizeX);
-                y = Game.Random.Next(-Game.MapSizeY, Game.MapSizeY);
+                x = Logic.Random.Next(-Game.MapSizeX, Game.MapSizeX);
+                y = Logic.Random.Next(-Game.MapSizeY, Game.MapSizeY);
                 env = new Envelope(x - searchRange, x + searchRange, y - searchRange, y + searchRange);
                 currentCount = cells.Query(env).Count();
             }

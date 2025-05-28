@@ -99,7 +99,6 @@ namespace Agario.Cells
         }
         public void InitializeCircle(float x, float y, float mass)
         {
-            Position = new Vector2f(x, y);
             Mass = mass;
             Position = new Vector2f(x, y);
         }

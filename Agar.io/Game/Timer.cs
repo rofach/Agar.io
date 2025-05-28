@@ -15,7 +15,6 @@ namespace Agario.GameLogic
             DeltaTime = s_delta.Restart().AsSeconds();
             _totalActiveGameTime += DeltaTime;
         }
-                
         public static void ResetDeltaClock()
         {
             s_delta.Restart();

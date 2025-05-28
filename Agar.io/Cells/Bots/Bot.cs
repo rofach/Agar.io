@@ -38,11 +38,11 @@ namespace Agario.Cells.Bots
             _currentDivideCount = 0;
             _maxDivideCount = 2; _maxCount = 6;
             _minMass = 200;
-            _targetPoint = new Vector2f(Game.Random.Next(-Game.MapSizeX, Game.MapSizeX), Game.Random.Next(-Game.MapSizeY, Game.MapSizeY));
+            _targetPoint = Logic.GenereatePoint(Game.MapSizeX, Game.MapSizeY);
             _cells.Add(new PlayerCell(0, 0, _minMass, ID)
             {
                 TimeToMerge = 10,
-                Position = new Vector2f(Game.Random.Next(-Game.MapSizeX, Game.MapSizeX), Game.Random.Next(-Game.MapSizeY, Game.MapSizeY))
+                Position = Logic.GenereatePoint(Game.MapSizeX, Game.MapSizeY)//new Vector2f(Logic.Random.Next(-Game.MapSizeX, Game.MapSizeX), Game.Random.Next(-Game.MapSizeY, Game.MapSizeY))
             });
             for (int i = 0; i < _maxCount; i++)
             {
@@ -75,6 +75,16 @@ namespace Agario.Cells.Bots
         {
             _cells.Remove(cell);
             Objects.Remove(cell);
+        }
+        public void Recreate()
+        {
+            if (_cells.Count > 0) return;
+            PlayerCell? newCell = _freeCells.Cast<PlayerCell>().First(c => !_cells.Contains(c));
+            if (newCell == null) throw new InvalidOperationException("No free cells available");
+            var point = Logic.GenereatePoint(Game.MapSizeX, Game.MapSizeY);
+            newCell.InitializeCircle(point.X, point.Y, _minMass);
+            _cells.Add(newCell);
+            Objects.Add(newCell);
         }
         virtual public void Update(RenderWindow window)
         {
@@ -113,6 +123,7 @@ namespace Agario.Cells.Bots
                 cellToAdd.StartAccelerationPoint = center;
                 cellToAdd.Mass = fragmentMass;
                 cellToAdd.DivisionTime = GameLogic.Timer.GameTime;
+                cellToAdd.MustUpdateSpeed = true;
                 AddCell(cellToAdd);
             }
         }
@@ -131,8 +142,5 @@ namespace Agario.Cells.Bots
             newCell.StartAccelerationPoint = cell.Position;
             return newCell;
         }
-
-       
-        
     }
 }

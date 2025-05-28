@@ -39,7 +39,6 @@ namespace Agario.Cells
                 _freeCells.Add(new PlayerCell(x: 0, y: 0, mass: 1, id) { CellColor = _cellsColor, TextToDraw = "You" });
             }
         }
-        //public
         public List<Cell> Cells
         {
             get { return _cells; }           

@@ -14,20 +14,18 @@ namespace Agario.GameLogic
 {
     sealed public class Game
     {
-        public static int MapSizeX = 4000, MapSizeY = 4000;
-
+        public const int MapSizeX = 5000, MapSizeY = 5000;
+        public GameState CurrentGameState { get; private set; } = GameState.MainMenu;
+        public static readonly Font GameFont = new Font("Moodcake.ttf");
+        
         private float _lastMassUpdate;
         private View? _camera;
         private Player? _player;
         private BotBehaviorsManager? _botStrategiesManager;
         private VertexArray? _grid;
-        static public readonly Random Random = new Random();
-
+       
         private MenuManager _menuManager;
-        public static readonly Font GameFont = new Font("Moodcake.ttf");
-
         private static int _nextId = 0;
-        public GameState CurrentGameState { get; private set; } = GameState.MainMenu;
 
         private int _initialFoodCount = 200;
         private int _initialBotsCount = 10;
@@ -49,19 +47,17 @@ namespace Agario.GameLogic
         public void StartNewGame()
         {
             Objects.ClearAll();
-
-            _lastMassUpdate = 0;
             for (int i = 0; i < _initialFoodCount; i++)
             {
                 Objects.Add(new Food(50));
             }
-            _player = new Player(1000);
+            _player = new Player(GetNextId());
             Objects.Add(_player);
             for (int i = 0; i < _initialBotsCount; i++)
             {
-                if (i % 3 == 0) Objects.Add(new TeleportBot(i));
-                else if (i % 3 == 1) Objects.Add(new SpeedBot(i));
-                else Objects.Add(new MassBot(i));
+                if (i % 3 == 0) Objects.Add(new TeleportBot(GetNextId()));
+                else if (i % 3 == 1) Objects.Add(new SpeedBot(GetNextId()));
+                else Objects.Add(new MassBot(GetNextId()));
             }
             for (int i = 0; i < _initialVirusCount; i++)
             {
@@ -81,7 +77,12 @@ namespace Agario.GameLogic
             }
 
             CurrentGameState = GameState.Playing;
+            Timer.SetTotalGameTime(0f);
             Timer.ResetDeltaClock();
+        }
+        private int GetNextId()
+        {
+            return _nextId++;
         }
         public void ResumeGame()
         {
@@ -123,7 +124,7 @@ namespace Agario.GameLogic
             CheckCellEating();
             UpdateCells(window);
             Objects.UpdateObjects();
-
+            RecreateBot();
             if (CurrentGameState == GameState.Playing && (_player == null || _player.Cells.Count == 0))
             {
                 ShowInitialMenu();
@@ -298,6 +299,16 @@ namespace Agario.GameLogic
                 }
             }
         }
+        private void RecreateBot()
+        {
+            var removedManagers = Objects.GetRemovedManagers();
+            foreach (Bot bot in removedManagers.OfType<Bot>())
+            {
+                Objects.Add(bot);
+                bot.Recreate();
+            }
+            Objects.ClearRemovedManagers();
+        }
         private void EatCell(Cell eater, Cell victim, RenderWindow window)
         {
             float dx = eater.X - victim.X;
@@ -348,21 +359,29 @@ namespace Agario.GameLogic
         {
             if (_player == null || _player.Cells.Count == 0)
                 return;
-            float massDifference = (_player.GetTotalMass() - 200) / 50;
+
+            float cellsSizesToAdd = 0;
+            for (int i = 1; i < _player.Cells.Count; i++)
+            {
+                cellsSizesToAdd += Math.Min(_player.Cells[i].Radius / 2, 200); 
+            }
+            float sizeToAdd = MathF.Sqrt(3*_player.GetTotalMass()) + cellsSizesToAdd;
+           
             float aspectRatio = window.Size.X / (float)window.Size.Y;
-            _camera.Size = new Vector2f((400 + massDifference) * aspectRatio, 400 + massDifference);
+            _camera.Size = new Vector2f((400 + sizeToAdd) * aspectRatio, 400 + sizeToAdd);
         }
 
         public void Run()
         {
-            var settings = new ContextSettings { AntialiasingLevel = 5 }; //
-            RenderWindow window = new RenderWindow(new VideoMode(800, 600), "Agario", Styles.Default, settings); //
+            var settings = new ContextSettings { AntialiasingLevel = 5 }; 
+            RenderWindow window = new RenderWindow(new VideoMode(800, 600), "Agario", Styles.Default, settings); 
 
             InitializeEssentialComponents(window);
             window.Closed += OnCloseWindow;
             window.MouseButtonPressed += OnMouseButtonPressed;
             window.KeyPressed += OnKeyPressed;
             window.Resized += OnWindowResized;
+            window.MouseMoved += OnMouseMoved;
             while (window.IsOpen)
             {
                 window.DispatchEvents();
@@ -375,6 +394,7 @@ namespace Agario.GameLogic
                         var view = new View(new FloatRect(0, 0, window.Size.X, window.Size.Y));
                         window.SetView(view);
                         _menuManager.Draw(window);
+                        Timer.ResetDeltaClock();
                         break;
 
                     case GameState.Playing:
@@ -442,6 +462,13 @@ namespace Agario.GameLogic
             else if (e.Code == Keyboard.Key.Space)
                 _player.SplitKeyPressed();
 
+        }
+        private void OnMouseMoved(object? sender, MouseMoveEventArgs e)
+        {
+            if (CurrentGameState == GameState.MainMenu || CurrentGameState == GameState.Paused)
+            {
+                _menuManager.HandleMouseMove(new Vector2i(e.X, e.Y));
+            }
         }
 
         public void SaveGame()

@@ -19,6 +19,7 @@ namespace Agario.GameLogic
         private static List<ICellManager<Cell>> _cellManagers = new();
         private static STRtree<Cell> _cellsTree = new();
         private static STRtree<Cell> _foodTree = new();
+        private static List<ICellManager<Cell>> _removedManagers = new();
         static int k = 0;
        
         public static void Add<T>(T obj)
@@ -72,15 +73,18 @@ namespace Agario.GameLogic
         }
         public static void RemoveCellFromAllManagers(Cell cell)
         {
-            List<ICellManager<Cell>> cellsToRemove = new();
+            List<ICellManager<Cell>> managersToRemove = new();
             foreach (var obj in _cellManagers.OfType<ICellManager<Cell>>())
             {
                 obj.RemoveCell(cell);
                 if (obj.Cells.Count == 0)
-                    cellsToRemove.Add(obj);
+                    managersToRemove.Add(obj);
             }
-            foreach (var obj in cellsToRemove)
+            foreach (var obj in managersToRemove)
+            {
                 Remove(obj);
+                _removedManagers.Add(obj);
+            }
         }
         public static void UpdateObjects()
         {
@@ -106,9 +110,10 @@ namespace Agario.GameLogic
             }
             _foodTree.Build();
         }
-        public static IEnumerable<IDrawable> GetDrawableObjects() => _drawableObjects;
-        public static IEnumerable<IUpdatable> GetMoveblaObjects() => _updatableObjects;
-        public static IEnumerable<ICellManager<Cell>> GetCellsManagers() => _cellManagers;
+        public static IReadOnlyList<IDrawable> GetDrawableObjects() => _drawableObjects;
+        public static IReadOnlyList<IUpdatable> GetMoveblaObjects() => _updatableObjects;
+        public static IReadOnlyList<ICellManager<Cell>> GetCellsManagers() => _cellManagers;
+        public static IReadOnlyList<ICellManager<Cell>> GetRemovedManagers() => _removedManagers;
         public static STRtree<Cell> GetCellsTree() => _cellsTree;
         public static STRtree<Cell> GetFoodTree() => _foodTree;
 
@@ -119,7 +124,10 @@ namespace Agario.GameLogic
             _cellManagers.Clear();
             _cellsTree = new STRtree<Cell>();
             _foodTree = new STRtree<Cell>();
-
+        }
+        public static void ClearRemovedManagers()
+        {
+            _removedManagers.Clear();
         }
     }
 

@@ -15,6 +15,7 @@ namespace Agario.UI
         private uint _characterSize;
         private Vector2f _size;
         private RenderWindow _window;
+        private Color _originalFillColor;
         public RectangleShape Shape { get; private set; }
         public Text ButtonText { get; private set; }
         public string Action { get; private set; }
@@ -34,7 +35,7 @@ namespace Agario.UI
             {
                 FillColor = textColor
             };
-
+            _originalFillColor = fillColor;
             UpdatePosition(position);
         }
 
@@ -57,6 +58,10 @@ namespace Agario.UI
         public void Hover()
         {
             Shape.FillColor = new Color(255, 150, 0, 220);
+        }
+        public void ResetColor()
+        {
+            Shape.FillColor = _originalFillColor; // Reset to original color
         }
         public void Draw(RenderWindow window)
         {

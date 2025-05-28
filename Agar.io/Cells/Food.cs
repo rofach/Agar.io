@@ -21,14 +21,14 @@ namespace Agario.Cells
         public Food(float mass = 30)
         {
             ChangePos(Game.MapSizeX, Game.MapSizeY);
-            Mass = Game.Random.Next(10, 50);
-            Circle.FillColor = new Color((byte)_rand.Next(0, 255), (byte)_rand.Next(0, 255), (byte)_rand.Next(0, 255));
+            Mass = Logic.Random.Next(10, 50);
+            Circle.FillColor = new Color((byte)Logic.Random.Next(0, 255), (byte)Logic.Random.Next(0, 255), (byte)Logic.Random.Next(0, 255));
             Circle.SetPointCount(20);
             IsEaten = false;
         }
         public void ChangePos(int sizeX, int sizeY)
         {
-            Position = new Vector2f(_rand.Next(-sizeX, sizeX), _rand.Next(-sizeY, sizeY));
+            Position = Logic.GenereatePoint(sizeX, sizeY);
         }
         public void Update(RenderWindow window)
         {
@@ -44,15 +44,14 @@ namespace Agario.Cells
             else
             {
                 _rand = new Random();
-                float moveX = _rand.Next(-39, 40) * Timer.DeltaTime;
-                float moveY = _rand.Next(-39, 40) * Timer.DeltaTime;
+                float moveX = Logic.Random.Next(-39, 40) * Timer.DeltaTime;
+                float moveY = Logic.Random.Next(-39, 40) * Timer.DeltaTime;
                 if (Math.Abs(X + moveX) >= Game.MapSizeX)
                     moveX = 0;
                 if (Math.Abs(Y + moveY) >= Game.MapSizeY)
                     moveY = 0;
                 Position += new Vector2f(moveX, moveY);
             }
-            
         }
     }
 }

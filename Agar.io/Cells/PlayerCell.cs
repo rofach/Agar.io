@@ -29,7 +29,7 @@ namespace Agario.Cells
         private float _timeToMerge = 0.0f;
         [JsonProperty]
         private int _id;
-
+        bool _mustUpdateSpeed = true;
         private Text _textToDraw;
         private string _textToDrawString;
 
@@ -101,13 +101,18 @@ namespace Agario.Cells
                 Circle.OutlineColor = new Color(r, g, b, 250);
             }
         }
+        public bool MustUpdateSpeed
+        {
+            get { return _mustUpdateSpeed; }
+            set { _mustUpdateSpeed = value; }
+        }
         [JsonConstructor]
         public PlayerCell(float x = 0, float y = 0, float mass = 200, int id = 1) : base()
         {
             ID = id;
             Position = new Vector2f(x, y);
             Mass = mass;
-            var rand = Game.Random;
+            var rand = Logic.Random;
             OutLineThickness = 2;
             CellColor = new Color((byte)rand.Next(0, 255), (byte)rand.Next(0, 255), (byte)rand.Next(0, 255));
             Circle.SetPointCount(100);
@@ -142,7 +147,7 @@ namespace Agario.Cells
         }
         public void Move(Vector2f targetPoint)
         {
-            UpdateSpeed();
+            if(MustUpdateSpeed) UpdateSpeed();
             if (_acceleration)
             {
                 targetPoint = _accelerationDirection;

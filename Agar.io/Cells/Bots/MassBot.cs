@@ -49,6 +49,7 @@ namespace Agario.Cells.Bots
                             _cellUsedPower = cell;
                             used = true;
                             _lastSuperPowerUsingTime = Timer.GameTime;
+                            ((PlayerCell)cell).MustUpdateSpeed = false;
                             break;
                         }
                     }
@@ -71,6 +72,7 @@ namespace Agario.Cells.Bots
                     else
                     {
                         _cellUsedPower.Mass -= Math.Min(_tempMass, _cellUsedPower.Mass / 2);
+                        ((PlayerCell)_cellUsedPower).MustUpdateSpeed = true;
                         _cellUsedPower = null;
                     }
                 }

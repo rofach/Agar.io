@@ -30,12 +30,30 @@ namespace Agario.UI
         private Button _saveButton;
         private Button _newGameButton;
 
+        private bool _showErrorText = false;
+        private Text _errorMessageText;
+        
+
         private Vector2f _buttonFixedSize = new Vector2f(200f, 50f);
         private uint _characterFixedSize = 20;
         private float _verticalFixedSpacing = 25f;
 
-       
         public bool IsVisible => CurrentMenuState != MenuState.None;
+        
+        public bool IsErrorModalVisible => _showErrorText;
+
+        public Text ErrorMessageText
+        {
+            get => _errorMessageText;
+            set
+            {
+                _errorMessageText = value;
+                _errorMessageText.Color = Color.Red;
+                _showErrorText = true;
+            }
+        }
+
+      
 
         public MenuManager(RenderWindow window, Font font, Game gameInstance)
         {
@@ -63,7 +81,7 @@ namespace Agario.UI
         {
             try
             {
-                _splashScreenTexture = new Texture("заставка.jpg");
+                _splashScreenTexture = new Texture(@"Content\Images\заставка.jpg");
                 _splashScreenSprite = new Sprite(_splashScreenTexture);
                 _splashScreenSprite.Origin = new Vector2f(_splashScreenTexture.Size.X / 2f, _splashScreenTexture.Size.Y / 2f);
             }
@@ -144,9 +162,11 @@ namespace Agario.UI
             {
                 case "Play":
                     _gameInstance.StartNewGame();
+                    HideErrorText();
                     break;
                 case "Continue":
                     _gameInstance.ResumeGame();
+                    HideErrorText();
                     break;
                 case "Load":
                     _gameInstance.LoadGame();
@@ -171,6 +191,13 @@ namespace Agario.UI
                     button.ResetColor();
             }
         }
+
+        public void HideErrorText()
+        {
+            _showErrorText = false;
+            _errorMessageText = null;
+        }
+
         public void Draw(RenderWindow window)
         {
             if (!IsVisible) return;
@@ -205,6 +232,12 @@ namespace Agario.UI
             foreach (var button in _currentButtons)
             {
                 button.Draw(window);
+            }
+
+            if (_showErrorText && _errorMessageText != null)
+            {
+                _errorMessageText.Position = new Vector2f(centerX - _errorMessageText.GetLocalBounds().Width / 2, _window.Size.Y - _errorMessageText.GetLocalBounds().Height * 2);
+                window.Draw(_errorMessageText);
             }
         }
     }

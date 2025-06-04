@@ -63,6 +63,7 @@ namespace Agario.Cells
                 _circle.Radius = value;
             }
         }
+        [JsonProperty(PropertyName = "CircleShape")]
         public CircleShape Circle
         {
             get => _circle;

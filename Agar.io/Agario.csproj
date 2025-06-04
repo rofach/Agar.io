@@ -14,4 +14,16 @@
     <PackageReference Include="TGUI.Net" Version="1.8.0.1-rc" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Content\Fonts\Moodcake.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Content\Images\icon.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Content\Images\заставка.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

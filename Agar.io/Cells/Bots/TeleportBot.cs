@@ -51,6 +51,7 @@ namespace Agario.Cells.Bots
                 cell.Position = newPos;
             }
 
+            _targetPoint = _behavior.FindNewTargetPoint(this);
         }
     }
 }

@@ -24,7 +24,7 @@ namespace Agario.Strategies
             float maxRadius = cells.Max(c => c.Radius);
             Vector2f directionCorrect = new();
 
-            foreach (PlayerCell myCell in cells.OfType<PlayerCell>())
+            foreach (PlayerCell myCell in cells.OfType<PlayerCell>().ToList())
             {
                 float range = myCell.Radius * 5;
                 var env = new Envelope(
@@ -69,7 +69,7 @@ namespace Agario.Strategies
                     Logic.Divide(bot, maxDivideCount: 2, ref time, 200);
                     bot.LastDivideTime = time;
                 }
-                target += directionCorrect / 3;
+                target += directionCorrect;
                 target = new Vector2f(Math.Clamp(target.X, -Game.MapSizeX, Game.MapSizeX),
                                      Math.Clamp(target.Y, -Game.MapSizeY, Game.MapSizeY));
             }
@@ -87,12 +87,14 @@ namespace Agario.Strategies
             }
             return target;
         }
+        
         private Vector2f Normalize(Vector2f v)
         {
             float mag = MathF.Sqrt(v.X * v.X + v.Y * v.Y);
             if (mag < 0.0001f) return new Vector2f(0, 0);
             return new Vector2f(v.X / mag, v.Y / mag);
         }
+        
         private Vector2f FindAveragePosition(List<Cell> cells)
         {
             float sumX = 0, sumY = 0;
@@ -108,7 +110,5 @@ namespace Agario.Strategies
         {
             return Logic.GetDistanceBetweenPoints(target, avgPos) < 10;
         }
-
-        
     }
 }

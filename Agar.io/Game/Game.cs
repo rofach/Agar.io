@@ -16,21 +16,22 @@ namespace Agario.GameLogic
     {
         public const int MapSizeX = 5000, MapSizeY = 5000;
         public GameState CurrentGameState { get; private set; } = GameState.MainMenu;
-        public static readonly Font GameFont = new Font("Moodcake.ttf");
+        public static readonly Font GameFont = new Font(@"Content\Fonts\Moodcake.ttf");
         
         private float _lastMassUpdate;
         private View? _camera;
         private Player? _player;
         private BotBehaviorsManager? _botStrategiesManager;
         private VertexArray? _grid;
-       
+
+        private Image _icon;
         private MenuManager _menuManager;
         private static int _nextId = 0;
 
         private int _initialFoodCount = 200;
         private int _initialBotsCount = 10;
         private int _initialVirusCount = 5;
-
+        
         public Game(int foodCount = 200, int botsCount = 10, int virusCount = 5)
         {
             _initialFoodCount = foodCount;
@@ -61,7 +62,7 @@ namespace Agario.GameLogic
             }
             for (int i = 0; i < _initialVirusCount; i++)
             {
-                Objects.Add(new Virus(1000));
+                Objects.Add(new Virus(1500));
             }
 
             _botStrategiesManager = new BotBehaviorsManager();
@@ -319,6 +320,7 @@ namespace Agario.GameLogic
                 eater.Mass += victim.Mass;
             }
         }
+
         private void EatFood(Cell cell, Food food, RenderWindow window)
         {
             float dist = Logic.GetDistanceBetweenCells(cell, food);
@@ -335,6 +337,7 @@ namespace Agario.GameLogic
                 food.IsEaten = false;
             }
         }
+
         private bool IsInViewZone(Cell obj, View camera)
         {
             return Math.Abs(camera.Center.X - obj.X) < camera.Size.X / 2 + obj.Radius * 4 &&
@@ -374,8 +377,16 @@ namespace Agario.GameLogic
         public void Run()
         {
             var settings = new ContextSettings { AntialiasingLevel = 5 }; 
-            RenderWindow window = new RenderWindow(new VideoMode(800, 600), "Agario", Styles.Default, settings); 
-
+            RenderWindow window = new RenderWindow(new VideoMode(800, 600), "Agario", Styles.Default, settings);
+            try
+            {
+                _icon = new Image(@"Content\Images\icon.png");
+                window.SetIcon(_icon.Size.X, _icon.Size.Y, _icon.Pixels);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading icon: {ex.Message}");
+            }
             InitializeEssentialComponents(window);
             window.Closed += OnCloseWindow;
             window.MouseButtonPressed += OnMouseButtonPressed;
@@ -417,6 +428,7 @@ namespace Agario.GameLogic
                 window.Display();
             }
         }
+
         private void OnCloseWindow(object? sender, EventArgs e)
         {
             if (sender is RenderWindow window)
@@ -424,6 +436,7 @@ namespace Agario.GameLogic
                 window.Close();
             }
         }
+
         private void OnWindowResized(object sender, SizeEventArgs e)
         {
             if (_camera != null)
@@ -456,13 +469,19 @@ namespace Agario.GameLogic
                 }
                 else if (CurrentGameState == GameState.Paused)
                 {
+                    _menuManager.HideErrorText();
                     ResumeGame();
                 }
             }
             else if (e.Code == Keyboard.Key.Space)
                 _player.SplitKeyPressed();
+            else if (e.Code == Keyboard.Key.F5)
+                SaveGame();
+            else if (e.Code == Keyboard.Key.F9)
+                LoadGame();
 
         }
+
         private void OnMouseMoved(object? sender, MouseMoveEventArgs e)
         {
             if (CurrentGameState == GameState.MainMenu || CurrentGameState == GameState.Paused)
@@ -526,7 +545,6 @@ namespace Agario.GameLogic
         }
         public void LoadGame()
         {
-            Objects.ClearAll();
             try
             {
                 string json = File.ReadAllText("game_save.json");
@@ -544,7 +562,10 @@ namespace Agario.GameLogic
                     StartNewGame();
                     return;
                 }
-
+                else
+                {
+                    Objects.ClearAll();
+                }
                 _lastMassUpdate = loadedData.LastMassUpdate;
                 _player = loadedData.PlayerInstance;
                 if (_player != null)
@@ -592,18 +613,8 @@ namespace Agario.GameLogic
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading game: {ex.Message}. Starting new game");
-                StartNewGame();
+                _menuManager.ErrorMessageText = new Text("Error loading game", GameFont);
             }
         }
-    }
-    public class SerializableGameData
-    {
-        public Player PlayerInstance { get; set; }
-        public List<Bot> Bots { get; set; } = new List<Bot>();
-        public List<Virus> Viruses { get; set; } = new List<Virus>();
-        public List<Food> Foods { get; set; } = new List<Food>();
-        public float LastMassUpdate { get; set; }
-        public float SavedTotalGameTime { get; set; }
     }
 }

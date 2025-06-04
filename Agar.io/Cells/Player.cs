@@ -24,6 +24,7 @@ namespace Agario.Cells
         private int _id;
         [JsonProperty]
         private Color _cellsColor;
+
         public Player(int id)
         {
             _id = id;
@@ -31,22 +32,26 @@ namespace Agario.Cells
             _minMass = 200;
             _lastDivideTime = 0;
             _freeCells = new List<Cell>();
-            _cells = new List<Cell>();
-            _cells.Add(new PlayerCell(mass: _minMass, id: _id) { TextToDraw = "You"});
-            _cellsColor = ((PlayerCell)_cells[0]).CellColor;
-            for (int i = 0; i < _maxCellsCount; i++)
+            var cell = new PlayerCell(mass: _minMass, id: _id) { TextToDraw = "You" };
+            _cellsColor = cell.CellColor;
+            _cells = new List<Cell>() { cell };
+            _freeCells.Add(cell);
+            for (int i = 1; i < _maxCellsCount; i++)
             {
                 _freeCells.Add(new PlayerCell(x: 0, y: 0, mass: 1, id) { CellColor = _cellsColor, TextToDraw = "You" });
             }
         }
+
         public List<Cell> Cells
         {
             get { return _cells; }           
         }
+
         public List<Cell> FreeCells
         {
             get { return _freeCells; }
         }
+
         public int ID { get => _id; set => _id = value; }
 
         public void VirusSplit(Cell cell)
@@ -74,12 +79,13 @@ namespace Agario.Cells
                 cellToAdd.DivisionTime = Timer.GameTime;
                 AddCell(cellToAdd);
             }
-            
         }
+
         public void SplitKeyPressed()
         {
             Logic.Divide(this, _maxCellsCount, ref _lastDivideTime, _minMass);
         }
+        
         public void Update(RenderWindow window)
         {
             Logic.Merge(this);
@@ -91,6 +97,7 @@ namespace Agario.Cells
             }
             Logic.HandleCollisions(_cells);
         }
+        
         public void AddCell(Cell cell)
         {
             _cells.Add(cell);
@@ -114,7 +121,7 @@ namespace Agario.Cells
             newCell.InitializeCircle(x, y, newMass);
             newCell.Acceleration = true;
             newCell.DivisionTime = currentTime;
-            newCell.AccelerationDirection = playerCell.Direction * 10000;
+            newCell.AccelerationDirection = playerCell.Direction * 10000 + playerCell.Position;
             newCell.AccelerationDistance = playerCell.Radius*3 + 300f;
             newCell.StartAccelerationPoint = new Vector2f(cell.X, cell.Y);
             return newCell;

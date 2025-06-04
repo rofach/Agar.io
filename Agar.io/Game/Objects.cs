@@ -112,7 +112,7 @@ namespace Agario.GameLogic
         }
         public static IReadOnlyList<IDrawable> GetDrawableObjects() => _drawableObjects;
         public static IReadOnlyList<IUpdatable> GetMoveblaObjects() => _updatableObjects;
-        public static IReadOnlyList<ICellManager<Cell>> GetCellsManagers() => _cellManagers;
+        public static IReadOnlyList <ICellManager<Cell>> GetCellsManagers() => _cellManagers;
         public static IReadOnlyList<ICellManager<Cell>> GetRemovedManagers() => _removedManagers;
         public static STRtree<Cell> GetCellsTree() => _cellsTree;
         public static STRtree<Cell> GetFoodTree() => _foodTree;

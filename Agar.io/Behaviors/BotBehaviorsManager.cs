@@ -7,10 +7,12 @@ namespace Agario.Strategies
     {
         private IBehavior? _aggressiveStrategy;
         private IBehavior? _safeStrategy;
+        
         public BotBehaviorsManager() { 
             _aggressiveStrategy = new AggressiveBehavior();
             _safeStrategy = new SafeBehavior();
         }
+        
         public void UpdateBehavior()
         {
             foreach (var manager in Objects.GetCellsManagers().Where(m => m is Bot))

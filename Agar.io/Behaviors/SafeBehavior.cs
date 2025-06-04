@@ -26,7 +26,7 @@ namespace Agario.Strategies
             Vector2f oldDirection = direction;
             var allCells = Objects.GetCellsTree();
             float maxRadius = cells.Max(c => c.Radius);
-            foreach (PlayerCell myCell in cells.OfType<PlayerCell>())
+            foreach (PlayerCell myCell in cells.OfType<PlayerCell>().ToList())
             {
                 float range = myCell.Radius * 5;
                 var env = new Envelope(
@@ -77,6 +77,7 @@ namespace Agario.Strategies
             Vector2f result = center + Normalize(direction) * cells.Min(c => c.Radius) * 5;
             return result;
         }
+        
         private bool GetPoint(Vector2f avgPos, Vector2f target)
         {
             if (Logic.GetDistanceBetweenPoints(target, avgPos) < 10)
@@ -85,6 +86,7 @@ namespace Agario.Strategies
             }
             return false;
         }
+        
         private Vector2f FindAveragePosition(List<Cell> cells)
         {
             float sumX = 0, sumY = 0;

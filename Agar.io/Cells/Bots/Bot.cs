@@ -39,43 +39,54 @@ namespace Agario.Cells.Bots
             _maxDivideCount = 2; _maxCount = 6;
             _minMass = 200;
             _targetPoint = Logic.GenereatePoint(Game.MapSizeX, Game.MapSizeY);
-            _cells.Add(new PlayerCell(0, 0, _minMass, ID)
+            var cell = new PlayerCell(mass: _minMass, id: ID)
             {
                 TimeToMerge = 10,
-                Position = Logic.GenereatePoint(Game.MapSizeX, Game.MapSizeY)//new Vector2f(Logic.Random.Next(-Game.MapSizeX, Game.MapSizeX), Game.Random.Next(-Game.MapSizeY, Game.MapSizeY))
-            });
+                Position = Logic.GenereatePoint(Game.MapSizeX, Game.MapSizeY),
+            };
+            _cells.Add(cell);
+            _freeCells.Add(cell);
             for (int i = 0; i < _maxCount; i++)
             {
                 _freeCells.Add(new PlayerCell(x: 0, y: 0, mass: _minMass, ID) 
                 { 
-                    TimeToMerge = 10, CellColor = ((PlayerCell)_cells[0]).CellColor 
+                    TimeToMerge = 10, CellColor = ((PlayerCell)_cells[0]).CellColor,
                 });
             }
         }
+       
         public IBehavior? Behavior
         {
             get { return _behavior; }
             set { _behavior = value; }
         }
+        
         public float LastDivideTime
         {
             get { return _lastDivideTime; }
             set { _lastDivideTime = value; }
         }
+        
         public List<Cell> Cells => _cells;
+        
         public List<Cell> FreeCells => _freeCells;
+        
         public Vector2f TargetPoint => _targetPoint;
+        
         public int ID { get; set; }
+        
         public void AddCell(Cell cell)
         {
             _cells.Add(cell);
             Objects.Add(cell);
         }
+        
         public void RemoveCell(Cell cell)
         {
             _cells.Remove(cell);
             Objects.Remove(cell);
         }
+        
         public void Recreate()
         {
             if (_cells.Count > 0) return;
@@ -99,7 +110,9 @@ namespace Agario.Cells.Bots
             Logic.HandleCollisions(_cells);
             Logic.Merge(this);
         }
+        
         public abstract void UseSuperPower();
+        
         public void VirusSplit(Cell cell)
         {
             int splitCount = Math.Min(_maxCount - 1, _maxCount - _cells.Count);
@@ -137,7 +150,7 @@ namespace Agario.Cells.Bots
             newCell.InitializeCircle(x, y, newMass);
             newCell.Acceleration = true;
             newCell.DivisionTime = currentTime;
-            newCell.AccelerationDirection = playerCell.Direction * 10000;
+            newCell.AccelerationDirection = playerCell.Direction * 10000 + playerCell.Position;
             newCell.AccelerationDistance = playerCell.Radius * 3 + 300f; 
             newCell.StartAccelerationPoint = cell.Position;
             return newCell;
